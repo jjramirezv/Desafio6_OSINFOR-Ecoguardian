@@ -29,3 +29,6 @@ Route::get('/graph/seed', GraphSeedController::class);
 
 // Conector interoperable (Sprint 2). Registro manual de lotes de importacion.
 Route::post('/import-batches', [ImportBatchController::class, 'store']);
+// Flujo demo del conector: normaliza filas crudas y proyecta el lote al grafo.
+Route::post('/import-batches/{id}/normalize-demo', [ImportBatchController::class, 'normalizeDemo']);
+Route::post('/import-batches/{id}/project', [ImportBatchController::class, 'project']);
