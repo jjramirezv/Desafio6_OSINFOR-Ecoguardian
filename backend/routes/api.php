@@ -10,6 +10,7 @@ use App\Modules\Interoperability\Controllers\ImportBatchController;
 use App\Modules\Interoperability\Controllers\SourceRecordController;
 use App\Modules\TraceGraph\Controllers\GraphSeedController;
 use App\Modules\TraceGraph\Controllers\TraceEdgeController;
+use App\Modules\TraceGraph\Controllers\TraceGraphController;
 use App\Modules\TraceGraph\Controllers\TraceNodeController;
 use Illuminate\Support\Facades\Route;
 
@@ -47,3 +48,11 @@ Route::get('/import-batches/{id}/operational-records', [ImportBatchController::c
 
 // Detalle de un source_record por id (S2-BE-14). Solo lectura.
 Route::get('/source-records/{id}', [SourceRecordController::class, 'show']);
+
+// Trazabilidad y grafo del Sprint 3. Solo lectura.
+// Grafo y timeline por lote (S3-BE-01, S3-BE-02).
+Route::get('/import-batches/{id}/graph', [ImportBatchController::class, 'graph']);
+Route::get('/import-batches/{id}/timeline', [ImportBatchController::class, 'timeline']);
+// Vecindario de un nodo y busqueda simple de grafo (S3-BE-03, S3-BE-04).
+Route::get('/trace/nodes/{id}/neighbors', [TraceGraphController::class, 'neighbors']);
+Route::get('/trace/search', [TraceGraphController::class, 'search']);

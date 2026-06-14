@@ -230,6 +230,117 @@ class ImportBatchController extends Controller
         ]);
     }
 
+    /**
+     * Grafo de trazabilidad de un lote (S3-BE-01).
+     *
+     * Localiza el nodo EVENTO del lote en trace_nodes por su metadata
+     * (projection_type = IMPORT_BATCH y batch_code = import_batches.batch_code) y
+     * devuelve ese nodo junto con las relaciones salientes y sus nodos destino.
+     * Si el lote existe pero aun no fue proyectado, devuelve nodes/edges vacios.
+     */
+    public function graph(int $id): JsonResponse
+    {
+        $batch = DB::table('import_batches')->where('id', $id)->first();
+
+        if ($batch === null) {
+            return response()->json([
+                'message' => "Import batch {$id} not found.",
+            ], 404);
+        }
+
+        $batchPayload = [
+            'id' => (int) $batch->id,
+            'batch_code' => $batch->batch_code,
+            'import_type' => $batch->import_type,
+            'status' => $batch->status,
+        ];
+
+        $batchNode = DB::table('trace_nodes')
+            ->whereRaw("metadata->>'projection_type' = ?", ['IMPORT_BATCH'])
+            ->whereRaw("metadata->>'batch_code' = ?", [(string) $batch->batch_code])
+            ->orderBy('id')
+            ->first();
+
+        if ($batchNode === null) {
+            return response()->json([
+                'data' => [
+                    'batch' => $batchPayload,
+                    'nodes' => [],
+                    'edges' => [],
+                    'meta' => [
+                        'nodes_count' => 0,
+                        'edges_count' => 0,
+                    ],
+                ],
+            ]);
+        }
+
+        $edges = DB::table('trace_edges')
+            ->where('source_node_id', $batchNode->id)
+            ->orderBy('id')
+            ->get();
+
+        $targetNodes = DB::table('trace_nodes')
+            ->whereIn('id', $edges->pluck('target_node_id')->all())
+            ->orderBy('id')
+            ->get();
+
+        $nodes = collect([$batchNode])
+            ->concat($targetNodes)
+            ->map(fn ($node) => $this->mapNode($node))
+            ->values();
+
+        $mappedEdges = $edges->map(fn ($edge) => $this->mapEdge($edge))->values();
+
+        return response()->json([
+            'data' => [
+                'batch' => $batchPayload,
+                'nodes' => $nodes,
+                'edges' => $mappedEdges,
+                'meta' => [
+                    'nodes_count' => $nodes->count(),
+                    'edges_count' => $mappedEdges->count(),
+                ],
+            ],
+        ]);
+    }
+
+    /**
+     * Timeline de eventos del lote (S3-BE-02).
+     *
+     * Devuelve los eventos del grafo (trace_events) asociados al lote, filtrando
+     * por entity_type = import_batches y entity_id = id, en orden cronologico.
+     */
+    public function timeline(int $id): JsonResponse
+    {
+        $batch = DB::table('import_batches')->where('id', $id)->first();
+
+        if ($batch === null) {
+            return response()->json([
+                'message' => "Import batch {$id} not found.",
+            ], 404);
+        }
+
+        $rows = DB::table('trace_events')
+            ->where('entity_type', 'import_batches')
+            ->where('entity_id', $id)
+            ->orderBy('id')
+            ->get()
+            ->map(fn ($row) => [
+                'id' => (int) $row->id,
+                'event_type' => $row->event_type,
+                'entity_type' => $row->entity_type,
+                'entity_id' => $row->entity_id === null ? null : (int) $row->entity_id,
+                'payload' => $this->decodeJson($row->payload),
+                'created_at' => $row->created_at,
+            ]);
+
+        return response()->json([
+            'data' => $rows,
+            'meta' => ['total' => $rows->count()],
+        ]);
+    }
+
     public function store(StoreImportBatchRequest $request): JsonResponse
     {
         try {
@@ -472,6 +583,39 @@ class ImportBatchController extends Controller
             ->value('id');
 
         return $sourceSystemId === null ? null : (int) $sourceSystemId;
+    }
+
+    /**
+     * Forma estandar de un nodo del grafo para las respuestas de trazabilidad.
+     *
+     * @return array<string,mixed>
+     */
+    private function mapNode(object $node): array
+    {
+        return [
+            'id' => (int) $node->id,
+            'type' => $node->node_type,
+            'label' => $node->label,
+            'status' => $node->status,
+            'metadata' => $this->decodeJson($node->metadata),
+        ];
+    }
+
+    /**
+     * Forma estandar de una relacion del grafo para las respuestas de trazabilidad.
+     *
+     * @return array<string,mixed>
+     */
+    private function mapEdge(object $edge): array
+    {
+        return [
+            'id' => (int) $edge->id,
+            'source' => (int) $edge->source_node_id,
+            'target' => (int) $edge->target_node_id,
+            'relation' => $edge->relation_type,
+            'status' => $edge->status,
+            'metadata' => $this->decodeJson($edge->metadata),
+        ];
     }
 
     /**
