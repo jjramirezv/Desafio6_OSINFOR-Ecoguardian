@@ -32,3 +32,7 @@ Route::post('/import-batches', [ImportBatchController::class, 'store']);
 // Flujo demo del conector: normaliza filas crudas y proyecta el lote al grafo.
 Route::post('/import-batches/{id}/normalize-demo', [ImportBatchController::class, 'normalizeDemo']);
 Route::post('/import-batches/{id}/project', [ImportBatchController::class, 'project']);
+// Persistencia operativa y proyeccion al grafo de los registros del lote (S2-BE-12).
+Route::post('/import-batches/{id}/persist', [ImportBatchController::class, 'persist']);
+Route::post('/import-batches/{id}/project-operational', [ImportBatchController::class, 'projectOperational']);
+Route::get('/import-batches/{id}/summary', [ImportBatchController::class, 'summary']);

@@ -5,6 +5,7 @@ namespace App\Modules\Interoperability\Controllers;
 use App\Http\Controllers\Controller;
 use App\Modules\Interoperability\Requests\NormalizeDemoImportBatchRequest;
 use App\Modules\Interoperability\Requests\StoreImportBatchRequest;
+use App\Modules\Interoperability\Services\OperationalPersistenceService;
 use App\Modules\Interoperability\Services\SourceNormalizerService;
 use App\Modules\TraceGraph\Services\GraphProjectionService;
 use Illuminate\Http\JsonResponse;
@@ -100,8 +101,18 @@ class ImportBatchController extends Controller
         $rows = $request->validated()['rows'];
         $importType = $batch->import_type;
 
+        // source_records.source_system_id es obligatorio aunque el lote pueda no
+        // tenerlo: resolver uno efectivo segun el import_type antes de persistir.
+        $sourceSystemId = $this->resolveSourceSystemId($batch);
+
+        if ($sourceSystemId === null) {
+            return response()->json([
+                'message' => 'Unable to resolve source system for this import type.',
+            ], 422);
+        }
+
         try {
-            $result = DB::transaction(function () use ($batch, $rows, $importType, $normalizer) {
+            $result = DB::transaction(function () use ($batch, $rows, $importType, $normalizer, $sourceSystemId) {
                 $now = now();
 
                 $totalRows = count($rows);
@@ -122,7 +133,7 @@ class ImportBatchController extends Controller
                         $sourceRecordsCreated++;
 
                         DB::table('source_records')->insert([
-                            'source_system_id' => $batch->source_system_id,
+                            'source_system_id' => $sourceSystemId,
                             'external_id' => "BATCH-{$batch->id}-ROW-{$rowNumber}",
                             'record_type' => $importType,
                             'record_date' => null,
@@ -221,5 +232,153 @@ class ImportBatchController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Resuelve el source_system_id efectivo para crear source_records.
+     *
+     * Prioriza el del propio lote; si el lote no lo tiene, lo deriva del
+     * import_type mapeando a source_systems.code. Devuelve null si no se puede
+     * resolver (import_type desconocido o source_system inexistente).
+     */
+    private function resolveSourceSystemId(object $batch): ?int
+    {
+        if ($batch->source_system_id !== null) {
+            return (int) $batch->source_system_id;
+        }
+
+        // Mapeo import_type -> source_systems.code.
+        $codeByType = [
+            'CENSO_FORESTAL' => 'CENSO_FORESTAL',
+            'LIBRO_OPERACIONES_TALA' => 'LIBRO_OPERACIONES',
+            'LIBRO_OPERACIONES_TROZADO' => 'LIBRO_OPERACIONES',
+            'LIBRO_OPERACIONES_DESPACHO' => 'LIBRO_OPERACIONES',
+            'BALANCE_EXTRACCION' => 'BALANCE_EXTRACCION',
+            'GTF' => 'GTF',
+        ];
+
+        $importType = strtoupper(trim((string) $batch->import_type));
+        $code = $codeByType[$importType] ?? null;
+
+        if ($code === null) {
+            return null;
+        }
+
+        $sourceSystemId = DB::table('source_systems')
+            ->where('code', $code)
+            ->value('id');
+
+        return $sourceSystemId === null ? null : (int) $sourceSystemId;
+    }
+
+    /**
+     * Persiste los source_records normalizados del lote en tablas operativas (S2-BE-12).
+     *
+     * Delega en OperationalPersistenceService. Idempotente: no duplica registros
+     * operativos si se invoca varias veces.
+     */
+    public function persist(OperationalPersistenceService $persistence, int $id): JsonResponse
+    {
+        try {
+            $result = $persistence->persistImportBatch($id);
+
+            return response()->json([
+                'data' => $result,
+                'message' => 'Import batch persisted successfully',
+            ]);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 404);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message' => 'No se pudo persistir el lote de importacion.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Proyecta los registros operativos del lote al grafo (S2-BE-12).
+     *
+     * Delega en GraphProjectionService::projectOperationalRecords.
+     */
+    public function projectOperational(GraphProjectionService $projector, int $id): JsonResponse
+    {
+        try {
+            $result = $projector->projectOperationalRecords($id);
+
+            return response()->json([
+                'data' => $result,
+                'message' => 'Operational records projected successfully',
+            ]);
+        } catch (InvalidArgumentException $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 404);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message' => 'No se pudieron proyectar los registros operativos.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Resumen del lote: contadores, conteos por tabla y eventos del grafo (S2-BE-12).
+     */
+    public function summary(int $id): JsonResponse
+    {
+        $batch = DB::table('import_batches')->where('id', $id)->first();
+
+        if ($batch === null) {
+            return response()->json([
+                'message' => "Import batch {$id} not found.",
+            ], 404);
+        }
+
+        $sourceRecords = DB::table('source_records')
+            ->whereRaw("metadata->>'import_batch_id' = ?", [(string) $id])
+            ->count();
+
+        $importErrors = DB::table('import_errors')->where('import_batch_id', $id)->count();
+        $operationTala = DB::table('operation_tala')->where('import_batch_id', $id)->count();
+        $operationTrozado = DB::table('operation_trozado')->where('import_batch_id', $id)->count();
+        $operationDespacho = DB::table('operation_despacho')->where('import_batch_id', $id)->count();
+        $extractionBalances = DB::table('extraction_balances')->where('import_batch_id', $id)->count();
+        $gtfs = DB::table('gtfs')->where('import_batch_id', $id)->count();
+
+        $events = DB::table('trace_events')
+            ->where('entity_type', 'import_batches')
+            ->where('entity_id', $id)
+            ->count();
+
+        return response()->json([
+            'data' => [
+                'id' => (int) $batch->id,
+                'batch_code' => $batch->batch_code,
+                'name' => $batch->name,
+                'import_type' => $batch->import_type,
+                'status' => $batch->status,
+                'counters' => [
+                    'total_rows' => (int) $batch->total_rows,
+                    'processed_rows' => (int) $batch->processed_rows,
+                    'successful_rows' => (int) $batch->successful_rows,
+                    'failed_rows' => (int) $batch->failed_rows,
+                ],
+                'records' => [
+                    'source_records' => $sourceRecords,
+                    'import_errors' => $importErrors,
+                    'operation_tala' => $operationTala,
+                    'operation_trozado' => $operationTrozado,
+                    'operation_despacho' => $operationDespacho,
+                    'extraction_balances' => $extractionBalances,
+                    'gtfs' => $gtfs,
+                ],
+                'graph' => [
+                    'events' => $events,
+                ],
+            ],
+        ]);
     }
 }

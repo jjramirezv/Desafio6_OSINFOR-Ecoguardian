@@ -162,4 +162,128 @@ class GraphProjectionService
             'events_created' => 1,
         ];
     }
+
+    /**
+     * Proyecta los registros operativos persistidos de un lote al grafo (S2-BE-11).
+     *
+     * Asegura el nodo EVENTO del lote (mismo criterio que projectImportBatch) y,
+     * por cada registro operativo del lote, crea un nodo basico y una relacion
+     * REGISTRA desde el nodo del lote. Registra ademas un evento
+     * OPERATIONAL_RECORDS_PROJECTED. Nodos y relaciones son idempotentes; el
+     * evento se registra en cada llamada.
+     *
+     * Aun no construye el grafo forestal completo (tala -> trozado -> despacho).
+     *
+     * @return array{import_batch_id:int,nodes_created_or_found:int,edges_created_or_found:int,events_created:int}
+     *
+     * @throws InvalidArgumentException si el lote no existe.
+     */
+    public function projectOperationalRecords(int $importBatchId): array
+    {
+        $batch = DB::table('import_batches')->where('id', $importBatchId)->first();
+
+        if ($batch === null) {
+            throw new InvalidArgumentException("Import batch {$importBatchId} not found.");
+        }
+
+        // Nodo del lote, con el mismo criterio que projectImportBatch para
+        // reutilizar el nodo si ya fue proyectado.
+        $batchLabel = $batch->batch_code ?? "import-batch-{$importBatchId}";
+        $batchNodeId = $this->ensureNode(
+            'EVENTO',
+            $batchLabel,
+            'import_batches',
+            $importBatchId,
+            [
+                'projection_type' => 'IMPORT_BATCH',
+                'batch_code' => $batch->batch_code ?? null,
+                'import_type' => $batch->import_type ?? null,
+            ]
+        );
+
+        $nodesCreatedOrFound = 0;
+        $edgesCreatedOrFound = 0;
+
+        // Definicion de cada tabla operativa y como derivar su nodo.
+        $sources = [
+            [
+                'table' => 'operation_tala',
+                'node_type' => 'EVENTO',
+                'label' => fn ($r) => 'Tala '.($r->tree_code ?? $r->tala_code ?? $r->id),
+            ],
+            [
+                'table' => 'operation_trozado',
+                'node_type' => 'EVENTO',
+                'label' => fn ($r) => 'Trozado '.($r->piece_code ?? $r->trozado_code ?? $r->id),
+            ],
+            [
+                'table' => 'operation_despacho',
+                'node_type' => 'EVENTO',
+                'label' => fn ($r) => 'Despacho '.($r->despacho_code ?? $r->dispatch_document ?? $r->id),
+            ],
+            [
+                'table' => 'extraction_balances',
+                'node_type' => 'BALANCE',
+                'label' => fn ($r) => 'Balance '.($r->balance_code ?? $r->species ?? $r->id),
+            ],
+            [
+                'table' => 'gtfs',
+                'node_type' => 'GTF',
+                'label' => fn ($r) => 'GTF '.($r->gtf_number ?? $r->id),
+            ],
+        ];
+
+        foreach ($sources as $source) {
+            $rows = DB::table($source['table'])
+                ->where('import_batch_id', $importBatchId)
+                ->orderBy('id')
+                ->get();
+
+            foreach ($rows as $row) {
+                $nodeId = $this->ensureNode(
+                    $source['node_type'],
+                    ($source['label'])($row),
+                    $source['table'],
+                    (int) $row->id,
+                    [
+                        'projection_type' => 'OPERATIONAL_RECORD',
+                        'import_batch_id' => $importBatchId,
+                    ]
+                );
+                $nodesCreatedOrFound++;
+
+                $this->ensureEdge($batchNodeId, $nodeId, 'REGISTRA', [
+                    'import_batch_id' => $importBatchId,
+                    'source_table' => $source['table'],
+                ]);
+                $edgesCreatedOrFound++;
+            }
+        }
+
+        $now = now();
+
+        DB::table('trace_events')->insert([
+            'event_type' => 'OPERATIONAL_RECORDS_PROJECTED',
+            'entity_type' => 'import_batches',
+            'entity_id' => $importBatchId,
+            'source_system_id' => $batch->source_system_id ?? null,
+            'payload' => json_encode([
+                'import_batch_id' => $importBatchId,
+                'batch_code' => $batch->batch_code ?? null,
+                'import_type' => $batch->import_type ?? null,
+                'batch_node_id' => $batchNodeId,
+                'nodes_created_or_found' => $nodesCreatedOrFound,
+                'edges_created_or_found' => $edgesCreatedOrFound,
+            ]),
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        return [
+            'import_batch_id' => $importBatchId,
+            'nodes_created_or_found' => $nodesCreatedOrFound,
+            'edges_created_or_found' => $edgesCreatedOrFound,
+            'events_created' => 1,
+        ];
+    }
 }
