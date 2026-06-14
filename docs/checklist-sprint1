@@ -1,0 +1,9 @@
+[ ] El sistema carga el Dashboard inicial.
+
+[ ] El usuario hace clic en "Explorador de Huella".
+
+[ ] Se dibuja en la pantalla la cadena base: Comunidad Bélgica -> PO 19 -> PC 01 -> Árbol 1000.
+
+[ ] Al hacer clic en el Árbol 1000, el panel lateral (Frontend) muestra correctamente la alerta extraída de nuestra base de datos: "El valor del diámetro mayor excede el rango permisible !!".
+
+[ ] El backend responde un 200 OK en la ruta /api/health.
