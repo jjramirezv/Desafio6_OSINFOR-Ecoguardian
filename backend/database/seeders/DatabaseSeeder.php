@@ -11,6 +11,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // No seeders defined for this task (S1-BE-01: minimal API).
+        // S1-BE-07: caso demo base y primer grafo de evidencia.
+        $this->call([
+            DemoCcnnBelgicaSeeder::class,
+        ]);
     }
 }
