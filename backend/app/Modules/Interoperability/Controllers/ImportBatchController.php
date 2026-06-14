@@ -9,6 +9,7 @@ use App\Modules\Interoperability\Services\OperationalPersistenceService;
 use App\Modules\Interoperability\Services\SourceNormalizerService;
 use App\Modules\TraceGraph\Services\GraphProjectionService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 use Throwable;
@@ -27,6 +28,208 @@ use Throwable;
  */
 class ImportBatchController extends Controller
 {
+    /**
+     * Lista los lotes de importacion del conector (S2-BE-13).
+     *
+     * Acepta filtros opcionales por status, import_type, source_system_id,
+     * organization_id y un limit. Responde con la forma estandar de listado
+     * del proyecto: { data: [...], meta: { total } }.
+     */
+    public function index(Request $request): JsonResponse
+    {
+        try {
+            $query = DB::table('import_batches')->orderByDesc('id');
+
+            if (($status = $request->query('status')) !== null) {
+                $query->where('status', $status);
+            }
+
+            if (($importType = $request->query('import_type')) !== null) {
+                $query->where('import_type', $importType);
+            }
+
+            if (($sourceSystemId = $request->query('source_system_id')) !== null) {
+                $query->where('source_system_id', (int) $sourceSystemId);
+            }
+
+            if (($organizationId = $request->query('organization_id')) !== null) {
+                $query->where('organization_id', (int) $organizationId);
+            }
+
+            $total = (clone $query)->count();
+
+            if (($limit = $request->query('limit')) !== null) {
+                $query->limit((int) $limit);
+            }
+
+            $rows = $query->get()->map(fn ($row) => [
+                'id' => (int) $row->id,
+                'batch_code' => $row->batch_code,
+                'name' => $row->name,
+                'import_type' => $row->import_type,
+                'status' => $row->status,
+                'total_rows' => (int) $row->total_rows,
+                'processed_rows' => (int) $row->processed_rows,
+                'successful_rows' => (int) $row->successful_rows,
+                'failed_rows' => (int) $row->failed_rows,
+                'created_at' => $row->created_at,
+            ]);
+
+            return response()->json([
+                'data' => $rows,
+                'meta' => ['total' => $total],
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message' => 'No se pudieron obtener los lotes de importacion.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Detalle basico de un lote de importacion (S2-BE-13).
+     */
+    public function show(int $id): JsonResponse
+    {
+        $batch = DB::table('import_batches')->where('id', $id)->first();
+
+        if ($batch === null) {
+            return response()->json([
+                'message' => "Import batch {$id} not found.",
+            ], 404);
+        }
+
+        return response()->json([
+            'data' => [
+                'id' => (int) $batch->id,
+                'batch_code' => $batch->batch_code,
+                'name' => $batch->name,
+                'import_type' => $batch->import_type,
+                'status' => $batch->status,
+                'counters' => [
+                    'total_rows' => (int) $batch->total_rows,
+                    'processed_rows' => (int) $batch->processed_rows,
+                    'successful_rows' => (int) $batch->successful_rows,
+                    'failed_rows' => (int) $batch->failed_rows,
+                ],
+                'metadata' => $this->decodeJson($batch->metadata),
+            ],
+        ]);
+    }
+
+    /**
+     * Lista los source_records asociados a un lote (S2-BE-13).
+     *
+     * Resuelve la relacion por metadata->import_batch_id, igual que el resto
+     * del conector.
+     */
+    public function sourceRecords(int $id): JsonResponse
+    {
+        $batch = DB::table('import_batches')->where('id', $id)->first();
+
+        if ($batch === null) {
+            return response()->json([
+                'message' => "Import batch {$id} not found.",
+            ], 404);
+        }
+
+        $rows = DB::table('source_records')
+            ->whereRaw("metadata->>'import_batch_id' = ?", [(string) $id])
+            ->orderBy('id')
+            ->get()
+            ->map(fn ($row) => [
+                'id' => (int) $row->id,
+                'record_type' => $row->record_type,
+                'status' => $row->status,
+                'external_id' => $row->external_id,
+                'raw_payload' => $this->decodeJson($row->raw_payload),
+                'normalized_payload' => $this->decodeJson($row->normalized_payload),
+                'metadata' => $this->decodeJson($row->metadata),
+            ]);
+
+        return response()->json([
+            'data' => $rows,
+            'meta' => ['total' => $rows->count()],
+        ]);
+    }
+
+    /**
+     * Lista los import_errors de un lote (S2-BE-13).
+     */
+    public function errors(int $id): JsonResponse
+    {
+        $batch = DB::table('import_batches')->where('id', $id)->first();
+
+        if ($batch === null) {
+            return response()->json([
+                'message' => "Import batch {$id} not found.",
+            ], 404);
+        }
+
+        $rows = DB::table('import_errors')
+            ->where('import_batch_id', $id)
+            ->orderBy('id')
+            ->get()
+            ->map(fn ($row) => [
+                'id' => (int) $row->id,
+                'row_number' => $row->row_number === null ? null : (int) $row->row_number,
+                'field_name' => $row->field_name,
+                'error_code' => $row->error_code,
+                'error_message' => $row->error_message,
+                'severity' => $row->severity,
+                'metadata' => $this->decodeJson($row->metadata),
+            ]);
+
+        return response()->json([
+            'data' => $rows,
+            'meta' => ['total' => $rows->count()],
+        ]);
+    }
+
+    /**
+     * Registros operativos de un lote agrupados por tabla (S2-BE-13).
+     *
+     * Devuelve los registros de cada tabla operativa creados a partir del lote
+     * (resueltos por import_batch_id) y, en meta, el conteo por tabla.
+     */
+    public function operationalRecords(int $id): JsonResponse
+    {
+        $batch = DB::table('import_batches')->where('id', $id)->first();
+
+        if ($batch === null) {
+            return response()->json([
+                'message' => "Import batch {$id} not found.",
+            ], 404);
+        }
+
+        $tables = [
+            'operation_tala',
+            'operation_trozado',
+            'operation_despacho',
+            'extraction_balances',
+            'gtfs',
+        ];
+
+        $data = [];
+        $meta = [];
+
+        foreach ($tables as $table) {
+            $rows = DB::table($table)
+                ->where('import_batch_id', $id)
+                ->orderBy('id')
+                ->get();
+
+            $data[$table] = $rows;
+            $meta[$table] = $rows->count();
+        }
+
+        return response()->json([
+            'data' => $data,
+            'meta' => $meta,
+        ]);
+    }
+
     public function store(StoreImportBatchRequest $request): JsonResponse
     {
         try {
@@ -269,6 +472,33 @@ class ImportBatchController extends Controller
             ->value('id');
 
         return $sourceSystemId === null ? null : (int) $sourceSystemId;
+    }
+
+    /**
+     * Decodifica un valor jsonb a objeto/array para la respuesta JSON.
+     *
+     * Cuando el valor es null, vacio o JSON invalido devuelve un objeto vacio
+     * ({} en JSON) en lugar de un array vacio ([]), para mantener una forma
+     * estable de objeto en las respuestas de consulta. Decodifica sin asociar
+     * para preservar objetos como objetos (un {} permanece {}).
+     */
+    private function decodeJson(mixed $value): object|array
+    {
+        if (is_object($value)) {
+            return $value;
+        }
+
+        if (is_array($value)) {
+            return $value === [] ? (object) [] : $value;
+        }
+
+        if (! is_string($value) || $value === '') {
+            return (object) [];
+        }
+
+        $decoded = json_decode($value);
+
+        return $decoded === null ? (object) [] : $decoded;
     }
 
     /**

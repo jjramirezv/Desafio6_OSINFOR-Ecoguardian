@@ -7,6 +7,7 @@ use App\Modules\Forest\Controllers\CuttingParcelController;
 use App\Modules\Forest\Controllers\ForestTitleController;
 use App\Modules\Forest\Controllers\OperationalPlanController;
 use App\Modules\Interoperability\Controllers\ImportBatchController;
+use App\Modules\Interoperability\Controllers\SourceRecordController;
 use App\Modules\TraceGraph\Controllers\GraphSeedController;
 use App\Modules\TraceGraph\Controllers\TraceEdgeController;
 use App\Modules\TraceGraph\Controllers\TraceNodeController;
@@ -36,3 +37,13 @@ Route::post('/import-batches/{id}/project', [ImportBatchController::class, 'proj
 Route::post('/import-batches/{id}/persist', [ImportBatchController::class, 'persist']);
 Route::post('/import-batches/{id}/project-operational', [ImportBatchController::class, 'projectOperational']);
 Route::get('/import-batches/{id}/summary', [ImportBatchController::class, 'summary']);
+
+// Consulta de lotes, source_records, errores y registros operativos (S2-BE-13).
+Route::get('/import-batches', [ImportBatchController::class, 'index']);
+Route::get('/import-batches/{id}', [ImportBatchController::class, 'show']);
+Route::get('/import-batches/{id}/source-records', [ImportBatchController::class, 'sourceRecords']);
+Route::get('/import-batches/{id}/errors', [ImportBatchController::class, 'errors']);
+Route::get('/import-batches/{id}/operational-records', [ImportBatchController::class, 'operationalRecords']);
+
+// Detalle de un source_record por id (S2-BE-14). Solo lectura.
+Route::get('/source-records/{id}', [SourceRecordController::class, 'show']);
