@@ -2,6 +2,9 @@ import { useMemo, useState } from 'react';
 import AppLayout from './components/layout/AppLayout.jsx';
 import DashboardPage from './pages/DashboardPage.jsx';
 import ImportWorkflowPage from './pages/ImportWorkflowPage.jsx';
+import ConsistencyAlertsPage from './pages/ConsistencyAlertsPage.jsx';
+import LegalFootprintPage from './pages/LegalFootprintPage.jsx';
+import PublicVerificationPage from './pages/PublicVerificationPage.jsx';
 import TraceabilityPage from './pages/TraceabilityPage.jsx';
 import { useBackendStatus } from './hooks/useBackendStatus.js';
 
@@ -17,6 +20,18 @@ const PAGE_META = {
   traceability: {
     title: 'Trazabilidad por lote',
     subtitle: 'Grafo, timeline, busqueda de nodos y vecindarios.',
+  },
+  footprint: {
+    title: 'Huella tecnica',
+    subtitle: 'Resumen y huella completa por lote.',
+  },
+  consistency: {
+    title: 'Consistencia y alertas',
+    subtitle: 'Motor de consistencia, filtros y revision de alertas.',
+  },
+  verification: {
+    title: 'Verificacion publica',
+    subtitle: 'Snapshot, hash y consulta por codigo verificable.',
   },
 };
 
@@ -34,6 +49,28 @@ export default function App() {
 
     if (currentPage === 'traceability') {
       return <TraceabilityPage initialBatchId={activeBatchId} />;
+    }
+
+    if (currentPage === 'footprint') {
+      return (
+        <LegalFootprintPage
+          initialBatchId={activeBatchId}
+          onBatchChange={setActiveBatchId}
+        />
+      );
+    }
+
+    if (currentPage === 'consistency') {
+      return (
+        <ConsistencyAlertsPage
+          initialBatchId={activeBatchId}
+          onBatchChange={setActiveBatchId}
+        />
+      );
+    }
+
+    if (currentPage === 'verification') {
+      return <PublicVerificationPage initialBatchId={activeBatchId} />;
     }
 
     return <DashboardPage backend={backend} />;

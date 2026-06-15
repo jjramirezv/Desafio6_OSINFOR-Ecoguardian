@@ -2,6 +2,9 @@ const NAV_ITEMS = [
   { key: 'dashboard', label: 'Panel general', icon: 'PG' },
   { key: 'import', label: 'Conector / Lotes', icon: 'CL' },
   { key: 'traceability', label: 'Trazabilidad', icon: 'TR' },
+  { key: 'footprint', label: 'Huella tecnica', icon: 'HT' },
+  { key: 'consistency', label: 'Alertas', icon: 'AL' },
+  { key: 'verification', label: 'Verificacion', icon: 'VP' },
 ];
 
 export default function Sidebar({ current, onNavigate }) {
@@ -15,7 +18,7 @@ export default function Sidebar({ current, onNavigate }) {
         </span>
       </div>
 
-      <nav className="app-nav" aria-label="Navegación principal">
+      <nav className="app-nav" aria-label="Navegacion principal">
         {NAV_ITEMS.map((item) => (
           <button
             key={item.key}
@@ -32,8 +35,8 @@ export default function Sidebar({ current, onNavigate }) {
       </nav>
 
       <p className="app-sidebar__footer">
-        Verificación técnica de trazabilidad y consistencia documental. No
-        certifica legalidad.
+        Verificacion tecnica de trazabilidad, consistencia documental y alertas
+        registradas.
       </p>
     </aside>
   );

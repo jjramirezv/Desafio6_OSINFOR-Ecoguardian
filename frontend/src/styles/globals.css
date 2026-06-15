@@ -380,6 +380,9 @@ table.data-table tbody tr.is-selected {
   gap: var(--sp-3);
   flex-wrap: wrap;
 }
+.row--nowrap {
+  flex-wrap: nowrap;
+}
 
 .module-list {
   display: flex;
@@ -474,4 +477,41 @@ table.data-table tbody tr.is-selected {
   font: inherit;
   color: var(--text-primary);
   background: var(--c-white);
+}
+
+.field--wide {
+  min-width: 280px;
+  flex: 1;
+}
+
+.select {
+  width: 100%;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 9px 11px;
+  font: inherit;
+  color: var(--text-primary);
+  background: var(--c-white);
+}
+
+.select--sm {
+  width: auto;
+  min-width: 124px;
+  padding: 6px 8px;
+  font-size: var(--fs-xs);
+}
+
+.select:focus-visible {
+  outline: 3px solid var(--c-info-100);
+  outline-offset: 2px;
+}
+
+.table-cell-json {
+  min-width: 220px;
+  max-width: 320px;
+}
+
+.table-cell-json .json-viewer {
+  max-height: 140px;
+  min-width: 220px;
 }
