@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\HealthController;
+use App\Modules\Consistency\Controllers\ConsistencyController;
 use App\Modules\Evidence\Controllers\SourceSystemController;
 use App\Modules\Forest\Controllers\CensusTreeController;
 use App\Modules\Forest\Controllers\CuttingParcelController;
@@ -62,3 +63,10 @@ Route::get('/trace/search', [TraceGraphController::class, 'search']);
 // Subgrafo verificable de un lote y resumen tecnico (S4-BE-02, S4-BE-03).
 Route::get('/import-batches/{id}/legal-footprint', [LegalFootprintController::class, 'show']);
 Route::get('/import-batches/{id}/legal-footprint/summary', [LegalFootprintController::class, 'summary']);
+
+// Motor de consistencia y alertas del Sprint 5. Las alertas son observaciones
+// tecnicas/documentales para revision; no declaran legalidad (S5-BE-03).
+Route::post('/import-batches/{id}/run-consistency', [ConsistencyController::class, 'runConsistency']);
+Route::get('/import-batches/{id}/alerts', [ConsistencyController::class, 'alerts']);
+Route::get('/consistency-alerts/{id}', [ConsistencyController::class, 'show']);
+Route::patch('/consistency-alerts/{id}/status', [ConsistencyController::class, 'updateStatus']);

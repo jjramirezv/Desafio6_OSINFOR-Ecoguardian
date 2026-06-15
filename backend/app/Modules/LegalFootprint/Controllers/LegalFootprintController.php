@@ -60,6 +60,7 @@ class LegalFootprintController extends Controller
                 'operational_records' => $footprint['operational_records'],
                 'graph' => $footprint['graph'],
                 'events' => $footprint['events'],
+                'alerts' => $this->alertsBlock($footprint['alerts']),
             ],
             'message' => 'Legal footprint generated successfully',
         ]);
@@ -109,8 +110,29 @@ class LegalFootprintController extends Controller
                     'graph_edges' => count($footprint['graph']['edges']),
                     'events' => count($footprint['events']),
                 ],
+                'alerts' => $this->alertsBlock($footprint['alerts']),
                 'message' => self::STATUS_MESSAGES[$status] ?? self::STATUS_MESSAGES['INCOMPLETE'],
             ],
         ]);
+    }
+
+    /**
+     * Bloque compacto de alertas de consistencia para las respuestas (S5-BE-04).
+     *
+     * Expone solo los conteos publicos; los auxiliares open_critical/open_errors
+     * que usa el calculo de estado quedan internos al servicio.
+     *
+     * @param  array<string,int>  $alerts
+     * @return array{total:int,critical:int,errors:int,warnings:int,open:int}
+     */
+    private function alertsBlock(array $alerts): array
+    {
+        return [
+            'total' => $alerts['total'] ?? 0,
+            'critical' => $alerts['critical'] ?? 0,
+            'errors' => $alerts['errors'] ?? 0,
+            'warnings' => $alerts['warnings'] ?? 0,
+            'open' => $alerts['open'] ?? 0,
+        ];
     }
 }

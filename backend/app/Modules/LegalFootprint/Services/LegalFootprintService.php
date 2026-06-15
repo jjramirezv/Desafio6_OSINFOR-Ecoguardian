@@ -58,6 +58,7 @@ class LegalFootprintService
         $operationalRecords = $this->loadOperationalRecords($importBatchId);
         $graph = $this->loadGraph($batch);
         $events = $this->loadEvents($importBatchId);
+        $alerts = $this->loadAlerts($importBatchId);
 
         $footprint = [
             'import_batch' => [
@@ -79,6 +80,7 @@ class LegalFootprintService
             'operational_records' => $operationalRecords,
             'graph' => $graph,
             'events' => $events,
+            'alerts' => $alerts,
         ];
 
         $footprint['status'] = $this->computeStatus($footprint);
@@ -90,8 +92,9 @@ class LegalFootprintService
     /**
      * Determina el estado tecnico de la huella a partir de su evidencia.
      *
-     * Prioridad: OBSERVED (hay errores) > INCOMPLETE (sin source_records o sin
-     * nodos de grafo) > TRACEABLE. Nunca usa LEGAL/ILLEGAL.
+     * Prioridad: OBSERVED (hay errores de importacion o alertas de consistencia
+     * CRITICAL/ERROR abiertas) > INCOMPLETE (sin source_records o sin nodos de
+     * grafo) > TRACEABLE. Nunca usa LEGAL/ILLEGAL.
      *
      * @param  array<string,mixed>  $footprint
      */
@@ -102,7 +105,12 @@ class LegalFootprintService
         $hasGraphNodes = ! empty($footprint['graph']['nodes'] ?? []);
         $hasOperationalRecords = $this->hasOperationalRecords($footprint['operational_records'] ?? []);
 
-        if ($hasErrors) {
+        // Alertas de consistencia CRITICAL o ERROR abiertas tambien observan la
+        // huella (S5-BE-04). Son observaciones tecnicas, no sentencia legal.
+        $alerts = $footprint['alerts'] ?? [];
+        $hasBlockingOpenAlerts = ($alerts['open_critical'] ?? 0) > 0 || ($alerts['open_errors'] ?? 0) > 0;
+
+        if ($hasErrors || $hasBlockingOpenAlerts) {
             return 'OBSERVED';
         }
 
@@ -290,6 +298,58 @@ class LegalFootprintService
                 'created_at' => $row->created_at,
             ])
             ->all();
+    }
+
+    /**
+     * Resumen de alertas de consistencia del lote (S5-BE-04).
+     *
+     * Devuelve conteos por severidad y estado. `open_critical` / `open_errors`
+     * son los que pueden observar la huella; `total`, `critical`, `errors`,
+     * `warnings` y `open` se exponen en el summary. No declara legalidad.
+     *
+     * @return array{total:int,critical:int,errors:int,warnings:int,info:int,open:int,open_critical:int,open_errors:int}
+     */
+    private function loadAlerts(int $importBatchId): array
+    {
+        $rows = DB::table('consistency_alerts')
+            ->where('import_batch_id', $importBatchId)
+            ->get(['severity', 'status']);
+
+        $summary = [
+            'total' => $rows->count(),
+            'critical' => 0,
+            'errors' => 0,
+            'warnings' => 0,
+            'info' => 0,
+            'open' => 0,
+            'open_critical' => 0,
+            'open_errors' => 0,
+        ];
+
+        foreach ($rows as $row) {
+            $severity = strtoupper((string) $row->severity);
+            $isOpen = strtoupper((string) $row->status) === 'OPEN';
+
+            match ($severity) {
+                'CRITICAL' => $summary['critical']++,
+                'ERROR' => $summary['errors']++,
+                'WARNING' => $summary['warnings']++,
+                'INFO' => $summary['info']++,
+                default => null,
+            };
+
+            if ($isOpen) {
+                $summary['open']++;
+
+                if ($severity === 'CRITICAL') {
+                    $summary['open_critical']++;
+                } elseif ($severity === 'ERROR') {
+                    $summary['open_errors']++;
+                }
+            }
+        }
+
+        return $summary;
     }
 
     /**
