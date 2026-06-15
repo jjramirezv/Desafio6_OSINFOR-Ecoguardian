@@ -1,7 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useTraceability } from '../hooks/useTraceability.js';
 import Card from '../components/common/Card.jsx';
-<<<<<<< HEAD
 import Button from '../components/common/Button.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
 import SectionHeader from '../components/common/SectionHeader.jsx';
@@ -33,47 +32,6 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
     if (initialBatchId) {
       loadGraph(initialBatchId);
       loadTimeline(initialBatchId);
-=======
-import CollapsibleJson from '../components/common/CollapsibleJson.jsx';
-import EmptyState from '../components/common/EmptyState.jsx';
-import SectionHeader from '../components/common/SectionHeader.jsx';
-import Timeline from '../components/common/Timeline.jsx';
-import GraphSummaryCard from '../components/domain/GraphSummaryCard.jsx';
-import TraceGraphTable from '../components/domain/TraceGraphTable.jsx';
-
-export default function TraceabilityPage({ initialBatchId = '' }) {
-  const [batchId, setBatchId] = useState(initialBatchId || '');
-  const [nodeId, setNodeId] = useState('');
-  const [query, setQuery] = useState('Tala');
-  const [graph, setGraph] = useState(null);
-  const [timeline, setTimeline] = useState([]);
-  const [searchResults, setSearchResults] = useState([]);
-  const [neighbors, setNeighbors] = useState(null);
-  const [technicalResponses, setTechnicalResponses] = useState({});
-  const [loading, setLoading] = useState('');
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    if (initialBatchId) setBatchId(initialBatchId);
-  }, [initialBatchId]);
-
-  const remember = (key, response) => {
-    setTechnicalResponses((current) => ({ ...current, [key]: response }));
-  };
-
-  const run = async (label, action) => {
-    setLoading(label);
-    setError(null);
-    try {
-      const response = await action();
-      remember(label, response);
-      return response;
-    } catch (err) {
-      setError(err);
-      return null;
-    } finally {
-      setLoading('');
->>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
     }
   }, [initialBatchId, loadGraph, loadTimeline]);
 
@@ -107,7 +65,6 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
   return (
     <>
       <SectionHeader
-<<<<<<< HEAD
         title="Trazabilidad y grafo de evidencia"
         subtitle="Visualiza el grafo por lote, explora la cronología de eventos, busca nodos e inspecciona sus relaciones."
       >
@@ -119,11 +76,6 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
           Limpiar
         </Button>
       </SectionHeader>
-=======
-        title="Trazabilidad"
-        subtitle="Lectura del grafo de evidencia, relaciones y timeline por lote."
-      />
->>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
 
       {error && (
         <EmptyState
@@ -150,7 +102,6 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
           </Card>
         </div>
 
-<<<<<<< HEAD
         <div className="traceability__main">
           <Card
             title="Grafo por lote"
@@ -162,29 +113,6 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
                 </span>
               )
             }
-=======
-        <div className="query-bar">
-          <label className="field">
-            <span>Busqueda</span>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} />
-          </label>
-          <Button onClick={searchNodes} disabled={!query.trim() || loading === 'search'}>
-            Buscar nodos
-          </Button>
-          <label className="field">
-            <span>ID de nodo</span>
-            <input
-              value={nodeId}
-              onChange={(event) => setNodeId(event.target.value)}
-              placeholder="Ej. 12"
-              inputMode="numeric"
-            />
-          </label>
-          <Button
-            variant="secondary"
-            onClick={() => loadNeighbors()}
-            disabled={!nodeId || loading === 'neighbors'}
->>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
           >
             {graphBusy ? (
               <div className="state">
@@ -233,7 +161,6 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
           </div>
         </div>
 
-<<<<<<< HEAD
         {neighbors && (
           <Card
             title="Vecinos del nodo"
@@ -244,65 +171,12 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
             }
           >
             <NodesTable
-=======
-      <div className="grid-2">
-        <GraphSummaryCard graph={graph} timeline={timeline} />
-
-        <Card title="Nodos y relaciones" className="col-span-2">
-          {graph ? (
-            <TraceGraphTable
-              nodes={graph.nodes || []}
-              edges={graph.edges || []}
-              selectedId={selectedNodeId}
-              onSelect={(node) => loadNeighbors(node.id)}
-            />
-          ) : (
-            <EmptyState title="Sin grafo cargado" message="Consulta un lote proyectado." />
-          )}
-        </Card>
-
-        <Card title="Timeline">
-          <Timeline events={timeline} />
-        </Card>
-
-        <Card title="Resultado de busqueda">
-          <TraceGraphTable
-            nodes={searchResults}
-            edges={[]}
-            selectedId={selectedNodeId}
-            onSelect={(node) => loadNeighbors(node.id)}
-          />
-        </Card>
-
-        <Card title="Vecinos del nodo" className="col-span-2">
-          {neighbors ? (
-            <TraceGraphTable
->>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
               nodes={[neighbors.node, ...(neighbors.neighbors || [])].filter(Boolean)}
               selectedId={selectedNode?.id}
               onSelect={handleNodeSelect}
             />
-<<<<<<< HEAD
           </Card>
         )}
-=======
-          ) : (
-            <EmptyState title="Sin vecinos" message="Selecciona un nodo o consulta por ID." />
-          )}
-        </Card>
-
-        <Card title="Detalle tecnico de trazabilidad" className="col-span-2">
-          {Object.keys(technicalResponses).length ? (
-            <div className="technical-list">
-              {Object.entries(technicalResponses).map(([key, response]) => (
-                <CollapsibleJson key={key} title={`Ver respuesta tecnica - ${key}`} data={response} />
-              ))}
-            </div>
-          ) : (
-            <EmptyState title="Sin respuestas tecnicas" message="Ejecuta una consulta para ver el detalle." />
-          )}
-        </Card>
->>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
       </div>
     </>
   );

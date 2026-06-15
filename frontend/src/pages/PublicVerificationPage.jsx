@@ -2,8 +2,9 @@ import Button from '../components/common/Button.jsx';
 import Card from '../components/common/Card.jsx';
 import CollapsibleJson from '../components/common/CollapsibleJson.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
-import LoadingState from '../components/common/LoadingState.jsx';
+import ProgressBar from '../components/common/ProgressBar.jsx';
 import SectionHeader from '../components/common/SectionHeader.jsx';
+import SummaryCard from '../components/common/SummaryCard.jsx';
 import VerificationCard, {
   PUBLIC_VERIFICATION_DISCLAIMER,
 } from '../components/domain/VerificationCard.jsx';
@@ -103,22 +104,32 @@ export default function PublicVerificationPage({ initialBatchId = '' }) {
         </Card>
       </div>
 
-      {loading && <LoadingState label="Esperando respuesta del backend..." />}
+      {loading && <ProgressBar label="Esperando respuesta del backend..." />}
 
       <div className="grid-2">
         <VerificationCard title="Snapshot generado" payload={snapshot} />
         <VerificationCard title="Codigo verificado" payload={verification} />
 
-        <Card title="Resumen backend" className="col-span-2">
-          {backendSummary ? (
-            <CollapsibleJson title="Ver respuesta tecnica" data={backendSummary} />
-          ) : (
-            <EmptyState
-              title="Sin resumen backend"
-              message="Consulta el resumen para confirmar disponibilidad de la API."
-            />
-          )}
-        </Card>
+        <SummaryCard
+          title="Resumen backend"
+          subtitle="Estado y metadatos reportados por la API"
+          accent
+          className="col-span-2"
+          items={backendSummary ? [
+            { label: 'Estado', value: backendSummary.status || 'Disponible', badge: true },
+            { label: 'Servicio', value: backendSummary.service || backendSummary.project || 'API' },
+          ] : []}
+          footer={
+            backendSummary ? (
+              <CollapsibleJson title="Ver respuesta tecnica" data={backendSummary} />
+            ) : (
+              <EmptyState
+                title="Sin resumen backend"
+                message="Consulta el resumen para confirmar disponibilidad de la API."
+              />
+            )
+          }
+        />
       </div>
     </>
   );

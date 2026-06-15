@@ -1,6 +1,7 @@
 import Badge from '../common/Badge.jsx';
 import Card from '../common/Card.jsx';
 import EmptyState from '../common/EmptyState.jsx';
+import KvGroup from '../common/KvGroup.jsx';
 import { toCount } from '../../utils/formatters.js';
 
 export default function BatchSummaryCard({ batch, title = 'Resumen del lote' }) {
@@ -24,34 +25,16 @@ export default function BatchSummaryCard({ batch, title = 'Resumen del lote' }) 
 
   return (
     <Card title={title} actions={<Badge status={batch.status} />} accent>
-      <div className="kv">
-        <div className="kv__item">
-          <span className="kv__key">ID del lote</span>
-          <span className="kv__value mono">#{batch.id}</span>
-        </div>
-        <div className="kv__item">
-          <span className="kv__key">Codigo</span>
-          <span className="kv__value mono">{batch.batch_code || '-'}</span>
-        </div>
-        <div className="kv__item">
-          <span className="kv__key">Tipo de importacion</span>
-          <span className="kv__value">{batch.import_type || '-'}</span>
-        </div>
-        <div className="kv__item">
-          <span className="kv__key">Estado</span>
-          <span className="kv__value">
-            <Badge status={batch.status} />
-          </span>
-        </div>
-        <div className="kv__item">
-          <span className="kv__key">Registros exitosos</span>
-          <span className="kv__value">{toCount(counters.successful_rows)}</span>
-        </div>
-        <div className="kv__item">
-          <span className="kv__key">Registros fallidos</span>
-          <span className="kv__value">{toCount(counters.failed_rows)}</span>
-        </div>
-      </div>
+      <KvGroup
+        items={[
+          { label: 'ID del lote', value: `#${batch.id}`, mono: true },
+          { label: 'Codigo', value: batch.batch_code || '-', mono: true },
+          { label: 'Tipo de importacion', value: batch.import_type || '-' },
+          { label: 'Estado', value: batch.status, badge: true },
+          { label: 'Registros exitosos', value: toCount(counters.successful_rows) },
+          { label: 'Registros fallidos', value: toCount(counters.failed_rows) },
+        ]}
+      />
     </Card>
   );
 }

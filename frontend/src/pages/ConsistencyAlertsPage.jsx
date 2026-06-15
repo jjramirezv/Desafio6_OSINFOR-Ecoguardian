@@ -1,12 +1,11 @@
 import { useEffect } from 'react';
-import Badge from '../components/common/Badge.jsx';
 import Button from '../components/common/Button.jsx';
 import Card from '../components/common/Card.jsx';
 import CollapsibleJson from '../components/common/CollapsibleJson.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
-import LoadingState from '../components/common/LoadingState.jsx';
-import MetricCard from '../components/common/MetricCard.jsx';
+import ProgressBar from '../components/common/ProgressBar.jsx';
 import SectionHeader from '../components/common/SectionHeader.jsx';
+import SummaryCard from '../components/common/SummaryCard.jsx';
 import AlertList from '../components/domain/AlertList.jsx';
 import {
   ALERT_SEVERITIES,
@@ -129,78 +128,51 @@ export default function ConsistencyAlertsPage({
         </div>
       </Card>
 
-      {loading && <LoadingState label="Esperando respuesta del backend..." />}
+      {loading && <ProgressBar label="Esperando respuesta del backend..." />}
 
       <div className="grid-2">
-        <Card title="Resumen de ejecucion">
-          {runSummary ? (
-            <div className="stack">
-              <div className="grid-3">
-                <MetricCard
-                  title="Alertas generadas"
-                  value={toCount(runSummary.alerts_created ?? runSummary.total_alerts)}
-                  detail="Segun respuesta del motor"
-                />
-                <MetricCard
-                  title="Reglas evaluadas"
-                  value={toCount(runSummary.rules_evaluated)}
-                  detail="Validaciones procesadas"
-                />
-                <MetricCard
-                  title="Estado"
-                  value={runSummary.status || 'Completado'}
-                  detail="Resultado de ejecucion"
-                />
-              </div>
+        <SummaryCard
+          title="Resumen de ejecucion"
+          subtitle="Alertas generadas, reglas evaluadas y estado del motor"
+          metrics={runSummary ? [
+            { label: 'Alertas generadas', value: toCount(runSummary.alerts_created ?? runSummary.total_alerts) },
+            { label: 'Reglas evaluadas', value: toCount(runSummary.rules_evaluated) },
+            { label: 'Estado', value: runSummary.status || 'Completado', color: 'var(--c-forest-600)' },
+          ] : []}
+          footer={
+            runSummary ? (
               <CollapsibleJson title="Ver respuesta tecnica" data={runSummary} />
-            </div>
-          ) : (
-            <EmptyState
-              title="Sin ejecucion"
-              message="Ejecuta el motor de consistencia para ver el resumen."
-            />
-          )}
-        </Card>
+            ) : (
+              <EmptyState
+                title="Sin ejecucion"
+                message="Ejecuta el motor de consistencia para ver el resumen."
+              />
+            )
+          }
+        />
 
-        <Card
+        <SummaryCard
           title="Detalle de alerta"
-          actions={selectedAlert?.status ? <Badge status={selectedAlert.status} /> : null}
-        >
-          {selectedAlert ? (
-            <div className="stack">
-              <div className="kv">
-                <div className="kv__item">
-                  <span className="kv__key">Codigo</span>
-                  <span className="kv__value mono">{selectedAlert.alert_code}</span>
-                </div>
-                <div className="kv__item">
-                  <span className="kv__key">Tipo</span>
-                  <span className="kv__value">{selectedAlert.alert_type}</span>
-                </div>
-                <div className="kv__item">
-                  <span className="kv__key">Severidad</span>
-                  <span className="kv__value">{selectedAlert.severity}</span>
-                </div>
-                <div className="kv__item">
-                  <span className="kv__key">Estado</span>
-                  <span className="kv__value">
-                    <Badge status={selectedAlert.status} />
-                  </span>
-                </div>
-                <div className="kv__item kv__item--full">
-                  <span className="kv__key">Titulo</span>
-                  <span className="kv__value">{selectedAlert.title}</span>
-                </div>
-              </div>
+          subtitle={selectedAlert ? `Ficha de la alerta seleccionada` : 'Selecciona una alerta de la lista'}
+          accent
+          items={selectedAlert ? [
+            { label: 'Codigo', value: selectedAlert.alert_code, mono: true },
+            { label: 'Tipo', value: selectedAlert.alert_type },
+            { label: 'Severidad', value: selectedAlert.severity, badge: true, color: selectedAlert.severity === 'HIGH' ? 'var(--c-danger-500)' : selectedAlert.severity === 'MEDIUM' ? 'var(--c-osinfor-ambar)' : 'var(--c-osinfor-marron)' },
+            { label: 'Estado', value: selectedAlert.status, badge: true },
+            { label: 'Titulo', value: selectedAlert.title },
+          ] : []}
+          footer={
+            selectedAlert ? (
               <CollapsibleJson title="Detalle tecnico JSON" data={selectedAlert} />
-            </div>
-          ) : (
-            <EmptyState
-              title="Sin alerta seleccionada"
-              message="Usa Detalle en una alerta para consultar su ficha."
-            />
-          )}
-        </Card>
+            ) : (
+              <EmptyState
+                title="Sin alerta seleccionada"
+                message="Usa Detalle en una alerta para consultar su ficha."
+              />
+            )
+          }
+        />
 
         <Card title={`Alertas (${alerts.length})`} className="col-span-2">
           <AlertList

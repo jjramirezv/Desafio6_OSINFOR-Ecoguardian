@@ -3,9 +3,9 @@ import Button from '../components/common/Button.jsx';
 import Card from '../components/common/Card.jsx';
 import CollapsibleJson from '../components/common/CollapsibleJson.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
-import LoadingState from '../components/common/LoadingState.jsx';
-import MetricCard from '../components/common/MetricCard.jsx';
+import ProgressBar from '../components/common/ProgressBar.jsx';
 import SectionHeader from '../components/common/SectionHeader.jsx';
+import SummaryCard from '../components/common/SummaryCard.jsx';
 import LegalFootprintSummary from '../components/domain/LegalFootprintSummary.jsx';
 import TraceGraphTable from '../components/domain/TraceGraphTable.jsx';
 import { useLegalFootprint } from '../hooks/useLegalFootprint.js';
@@ -81,40 +81,30 @@ export default function LegalFootprintPage({
         </div>
       </Card>
 
-      {loading && <LoadingState label="Esperando respuesta del backend..." />}
+      {loading && <ProgressBar label="Esperando respuesta del backend..." />}
 
       <div className="grid-2">
         <LegalFootprintSummary summary={summary} footprint={footprint} />
 
-        <Card title="Completitud documental">
-          {footprint?.completeness ? (
-            <div className="stack">
-              <div className="grid-3">
-                <MetricCard
-                  title="Score"
-                  value={footprint.completeness.score ?? '-'}
-                  detail="Resultado tecnico de completitud"
-                />
-                <MetricCard
-                  title="Reglas evaluadas"
-                  value={toCount(footprint.completeness.rules_evaluated)}
-                  detail="Si el backend lo reporta"
-                />
-                <MetricCard
-                  title="Observaciones"
-                  value={toCount(footprint.completeness.observations)}
-                  detail="Señales para revision"
-                />
-              </div>
+        <SummaryCard
+          title="Completitud documental"
+          subtitle="Score, reglas evaluadas y observaciones tecnicas"
+          metrics={footprint?.completeness ? [
+            { label: 'Score', value: footprint.completeness.score ?? '-', color: 'var(--brand-primary)' },
+            { label: 'Reglas evaluadas', value: toCount(footprint.completeness.rules_evaluated) },
+            { label: 'Observaciones', value: toCount(footprint.completeness.observations), color: 'var(--c-osinfor-ambar)' },
+          ] : []}
+          footer={
+            footprint?.completeness ? (
               <CollapsibleJson title="Detalle tecnico JSON" data={footprint.completeness} />
-            </div>
-          ) : (
-            <EmptyState
-              title="Sin completitud"
-              message="Consulta la huella completa para ver este bloque."
-            />
-          )}
-        </Card>
+            ) : (
+              <EmptyState
+                title="Sin completitud"
+                message="Consulta la huella completa para ver este bloque."
+              />
+            )
+          }
+        />
 
         <Card title="Grafo de la huella" className="col-span-2">
           {footprint?.graph ? (
@@ -130,19 +120,25 @@ export default function LegalFootprintPage({
           )}
         </Card>
 
-        <Card title="Detalle tecnico de huella" className="col-span-2">
-          {footprint || summary ? (
-            <div className="technical-list">
-              <CollapsibleJson title="Ver respuesta tecnica - resumen" data={summary} />
-              <CollapsibleJson title="Ver respuesta tecnica - huella completa" data={footprint} />
-            </div>
-          ) : (
-            <EmptyState
-              title="Sin respuesta tecnica"
-              message="Ejecuta una consulta para habilitar el detalle."
-            />
-          )}
-        </Card>
+        <SummaryCard
+          title="Detalle tecnico de huella"
+          subtitle="Respuestas JSON del backend para resumen y huella completa"
+          accent
+          className="col-span-2"
+          footer={
+            footprint || summary ? (
+              <div className="technical-list">
+                <CollapsibleJson title="Ver respuesta tecnica - resumen" data={summary} />
+                <CollapsibleJson title="Ver respuesta tecnica - huella completa" data={footprint} />
+              </div>
+            ) : (
+              <EmptyState
+                title="Sin respuesta tecnica"
+                message="Ejecuta una consulta para habilitar el detalle."
+              />
+            )
+          }
+        />
       </div>
     </>
   );

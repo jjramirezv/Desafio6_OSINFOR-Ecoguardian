@@ -10,18 +10,6 @@ import { useBackendStatus } from './hooks/useBackendStatus.js';
 
 const PAGE_META = {
   dashboard: {
-<<<<<<< HEAD
-    title: 'Panel General',
-    subtitle: 'Estado del backend, sistemas fuente y grafo de evidencia.',
-  },
-  import: {
-    title: 'Conector interoperable',
-    subtitle: 'Creación, normalización, persistencia y proyección de lote demo.',
-  },
-  traceability: {
-    title: 'Trazabilidad por lote',
-    subtitle: 'Grafo, timeline, búsqueda de nodos y vecindarios.',
-=======
     title: 'Panel general',
     subtitle: 'Estado operativo, alcance funcional y advertencias de uso.',
   },
@@ -44,7 +32,6 @@ const PAGE_META = {
   verification: {
     title: 'Verificacion',
     subtitle: 'Snapshot, hash y consulta publica por codigo.',
->>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
   },
 };
 
