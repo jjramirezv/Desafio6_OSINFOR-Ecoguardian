@@ -1,0 +1,80 @@
+/*
+ * brand.css — Identidad visual de Huella Legal Forestal.
+ * Estilo institucional forestal: verde oscuro / verde medio / blanco / gris claro,
+ * con acentos dorados suaves para advertencias. Sin colores de marca OSINFOR
+ * disponibles en assets, se usa la paleta institucional descrita en el reto.
+ * Todos los tokens viven aqui; el resto de CSS los consume via var().
+ */
+
+:root {
+  /* --- Paleta forestal --- */
+  --c-forest-900: #0f2e1d; /* verde muy oscuro (fondos profundos) */
+  --c-forest-800: #14532d; /* verde oscuro principal */
+  --c-forest-700: #1b6b3a; /* verde oscuro / hover */
+  --c-forest-600: #228b4e; /* verde medio (acciones) */
+  --c-forest-500: #2fa364; /* verde medio claro */
+  --c-forest-100: #d9efe2; /* verde muy claro (fondos suaves) */
+  --c-forest-050: #eef7f1;
+
+  /* --- Neutros --- */
+  --c-white: #ffffff;
+  --c-gray-050: #f6f8f7;
+  --c-gray-100: #eef1f0;
+  --c-gray-200: #dde3e1;
+  --c-gray-300: #c4ccc9;
+  --c-gray-400: #9aa5a1;
+  --c-gray-600: #5b6661;
+  --c-gray-800: #2c3531;
+  --c-ink: #1a211e;
+
+  /* --- Acentos / estados --- */
+  --c-gold-500: #c79a26; /* dorado suave (advertencias) */
+  --c-gold-100: #f7eed1;
+  --c-amber-bg: #fdf6e3;
+  --c-info-500: #2563a8;
+  --c-info-100: #dbeafe;
+  --c-danger-500: #b3261e;
+  --c-danger-100: #f9dedc;
+  --c-success-500: var(--c-forest-600);
+  --c-success-100: var(--c-forest-100);
+
+  /* --- Tipografia --- */
+  --font-sans: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial,
+    sans-serif;
+  --font-mono: 'Cascadia Code', 'Consolas', 'SF Mono', Menlo, monospace;
+
+  --fs-xs: 0.75rem;
+  --fs-sm: 0.85rem;
+  --fs-md: 0.95rem;
+  --fs-lg: 1.15rem;
+  --fs-xl: 1.5rem;
+  --fs-2xl: 2rem;
+
+  /* --- Espaciado --- */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  /* --- Bordes / sombras --- */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 8px;
+  --shadow-sm: 0 1px 2px rgba(15, 46, 29, 0.08);
+  --shadow-md: 0 4px 16px rgba(15, 46, 29, 0.1);
+  --shadow-lg: 0 12px 32px rgba(15, 46, 29, 0.14);
+
+  /* --- Roles semanticos --- */
+  --bg-app: var(--c-gray-050);
+  --bg-surface: var(--c-white);
+  --bg-sidebar: var(--c-forest-900);
+  --bg-header: var(--c-white);
+  --text-primary: var(--c-ink);
+  --text-muted: var(--c-gray-600);
+  --border-subtle: var(--c-gray-200);
+  --brand-primary: var(--c-forest-800);
+  --brand-accent: var(--c-forest-600);
+}

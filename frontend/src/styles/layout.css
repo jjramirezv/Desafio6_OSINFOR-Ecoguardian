@@ -1,0 +1,346 @@
+/*
+ * layout.css — Estructura del shell de la aplicacion: header, sidebar y main.
+ * Depende de los tokens de brand.css.
+ */
+
+.app {
+  display: grid;
+  grid-template-columns: 248px 1fr;
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'sidebar header'
+    'sidebar main';
+  min-height: 100vh;
+}
+
+/* ---------- Header ---------- */
+.app-header {
+  grid-area: header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-6);
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border-subtle);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.app-header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.app-header__title {
+  font-size: var(--fs-lg);
+}
+
+.app-header__subtitle {
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.app-header__meta {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.app-header__api {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+
+/* ---------- Sidebar ---------- */
+.app-sidebar {
+  grid-area: sidebar;
+  background: var(--bg-sidebar);
+  color: #cfe6d8;
+  display: flex;
+  flex-direction: column;
+  padding: var(--sp-5) var(--sp-4);
+  gap: var(--sp-6);
+}
+
+.app-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.app-sidebar__logo {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  background: var(--c-forest-600);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.app-sidebar__brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.app-sidebar__brand-name {
+  color: var(--c-white);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  line-height: 1.2;
+}
+
+.app-sidebar__brand-tag {
+  font-size: var(--fs-xs);
+  color: #8fbfa3;
+}
+
+.app-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.app-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #cfe6d8;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.app-nav__item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--c-white);
+}
+
+.app-nav__item.is-active {
+  background: var(--c-forest-700);
+  color: var(--c-white);
+}
+
+.app-nav__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 22px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.app-sidebar__footer {
+  margin-top: auto;
+  font-size: var(--fs-xs);
+  color: #7aab8e;
+  line-height: 1.5;
+}
+
+/* ---------- Main ---------- */
+.app-main {
+  grid-area: main;
+  padding: var(--sp-6);
+  overflow-x: hidden;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-5);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ---------- Grids de contenido ---------- */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--sp-5);
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sp-4);
+}
+
+.col-span-2 {
+  grid-column: span 2;
+}
+
+/* ---------- Workflow steps ---------- */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  width: 100%;
+  text-align: left;
+  background: var(--c-white);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.step:not(:disabled):hover {
+  border-color: var(--brand-accent);
+}
+
+.step:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.step--ok {
+  border-color: var(--c-forest-500);
+  background: var(--c-forest-050);
+}
+.step--error {
+  border-color: var(--c-danger-500);
+  background: var(--c-danger-100);
+}
+.step--running {
+  border-color: var(--c-info-500);
+}
+
+.step__icon {
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.step__icon--ok {
+  color: var(--c-forest-600);
+}
+.step__icon--error {
+  color: var(--c-danger-500);
+}
+.step__icon--running {
+  color: var(--c-info-500);
+}
+.step__icon--idle {
+  color: var(--c-gray-400);
+}
+
+/* ---------- Log ---------- */
+.log {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 280px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+}
+
+.log__entry {
+  display: flex;
+  gap: var(--sp-3);
+  padding: 4px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.log__time {
+  color: var(--c-gray-400);
+  flex-shrink: 0;
+}
+
+.log__entry--ok .log__msg {
+  color: var(--c-forest-700);
+}
+.log__entry--error .log__msg {
+  color: var(--c-danger-500);
+}
+.log__entry--info .log__msg {
+  color: var(--text-primary);
+}
+
+/* ---------- Timeline ---------- */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.timeline__item {
+  position: relative;
+  padding: 0 0 var(--sp-4) var(--sp-5);
+  border-left: 2px solid var(--c-forest-100);
+}
+
+.timeline__item:last-child {
+  border-left-color: transparent;
+  padding-bottom: 0;
+}
+
+.timeline__dot {
+  position: absolute;
+  left: -7px;
+  top: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--brand-accent);
+  border: 2px solid var(--c-white);
+}
+
+.timeline__event {
+  font-weight: 700;
+  color: var(--brand-primary);
+  font-size: var(--fs-sm);
+}
+
+.timeline__time {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .app {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      'header'
+      'main';
+  }
+  .app-sidebar {
+    display: none;
+  }
+  .col-span-2 {
+    grid-column: auto;
+  }
+}
