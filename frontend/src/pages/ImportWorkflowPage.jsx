@@ -1,8 +1,13 @@
+<<<<<<< HEAD
 import { useState } from 'react';
 import Badge from '../components/common/Badge.jsx';
+=======
+>>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
 import Button from '../components/common/Button.jsx';
 import Card from '../components/common/Card.jsx';
+import CollapsibleJson from '../components/common/CollapsibleJson.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
+<<<<<<< HEAD
 import JsonViewer from '../components/common/JsonViewer.jsx';
 import LoadingState from '../components/common/LoadingState.jsx';
 import SectionHeader from '../components/common/SectionHeader.jsx';
@@ -11,9 +16,16 @@ import PipelineWizard from '../components/domain/PipelineWizard.jsx';
 import ImportErrorsTable from '../components/domain/ImportErrorsTable.jsx';
 import { useImportWorkflow, IMPORT_STEPS } from '../hooks/useImportWorkflow.js';
 import { DISCLAIMER } from '../api/httpClient.js';
+=======
+import SectionHeader from '../components/common/SectionHeader.jsx';
+import StepCard from '../components/common/StepCard.jsx';
+import BatchSummaryCard from '../components/domain/BatchSummaryCard.jsx';
+import { IMPORT_STEPS, useImportWorkflow } from '../hooks/useImportWorkflow.js';
+>>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
 import { RUN } from '../utils/statusHelpers.js';
 import { formatDateTime, humanizeKey } from '../utils/formatters.js';
 
+<<<<<<< HEAD
 const IMPORT_TYPE_OPTIONS = [
   { value: 'LIBRO_OPERACIONES_TALA', label: 'Libro Operaciones — Tala' },
   { value: 'LIBRO_OPERACIONES_TROZADO', label: 'Libro Operaciones — Trozado' },
@@ -109,6 +121,72 @@ function StepAction({ step, workflow }) {
       <span className="pipeline-step-btn__label">{step.label}</span>
     </button>
   );
+=======
+const STEP_CONTENT = {
+  create: {
+    title: 'Crear lote',
+    description: 'Registra el lote de importacion que agrupa la evidencia.',
+    action: 'Crear lote',
+    result: 'Lote creado correctamente',
+  },
+  normalize: {
+    title: 'Normalizar datos',
+    description: 'Transforma filas demo al formato interoperable esperado.',
+    action: 'Normalizar',
+    result: 'Registros normalizados',
+  },
+  persist: {
+    title: 'Persistir registros',
+    description: 'Guarda registros fuente y errores reportados por backend.',
+    action: 'Persistir',
+    result: 'Registros persistidos',
+  },
+  project: {
+    title: 'Proyectar lote',
+    description: 'Crea nodos y relaciones base para trazabilidad.',
+    action: 'Proyectar lote',
+    result: 'Grafo proyectado',
+  },
+  projectOperational: {
+    title: 'Proyectar operaciones',
+    description: 'Integra registros operativos al grafo de evidencia.',
+    action: 'Proyectar operaciones',
+    result: 'Operaciones proyectadas',
+  },
+  summary: {
+    title: 'Consultar resumen',
+    description: 'Actualiza contadores, estado y metadatos del lote.',
+    action: 'Consultar resumen',
+    result: 'Resumen actualizado',
+  },
+  sourceRecords: {
+    title: 'Consultar registros',
+    description: 'Lista registros fuente vinculados al lote.',
+    action: 'Consultar registros',
+    result: 'Registros consultados',
+  },
+  errors: {
+    title: 'Consultar errores',
+    description: 'Revisa errores de normalizacion o persistencia.',
+    action: 'Consultar errores',
+    result: 'Errores consultados',
+  },
+  operationalRecords: {
+    title: 'Consultar operaciones',
+    description: 'Lista registros operativos proyectados por el backend.',
+    action: 'Consultar operaciones',
+    result: 'Operaciones consultadas',
+  },
+};
+
+function responseLabel(key, response) {
+  if (!response) return '';
+  if (response.message) return response.message;
+  const data = response.data;
+  if (Array.isArray(data)) return `${data.length} registros devueltos`;
+  if (data?.id) return `${STEP_CONTENT[key]?.result || 'Paso ejecutado'} (#${data.id})`;
+  return STEP_CONTENT[key]?.result || 'Paso ejecutado correctamente';
+>>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
 }
 
 export default function ImportWorkflowPage({ onBatchChange }) {
@@ -119,7 +197,11 @@ export default function ImportWorkflowPage({ onBatchChange }) {
     <>
       <SectionHeader
         title="Conector interoperable"
+<<<<<<< HEAD
         subtitle="Pipeline de importación demo: crea un lote, normaliza filas, persiste datos operativos y proyecta al grafo de trazabilidad."
+=======
+        subtitle="Flujo operacional sobre endpoints reales del backend."
+>>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
         actions={
           <div className="row">
             {workflow.batch && (
@@ -142,6 +224,7 @@ export default function ImportWorkflowPage({ onBatchChange }) {
         }
       />
 
+<<<<<<< HEAD
       <p className="disclaimer">{DISCLAIMER}</p>
 
       {/* ---------- FORMULARIO DE CREACIÓN ---------- */}
@@ -354,6 +437,73 @@ export default function ImportWorkflowPage({ onBatchChange }) {
           </div>
         </Card>
       )}
+=======
+      {workflow.lastError && (
+        <EmptyState
+          variant="error"
+          title="Ultimo error"
+          message={workflow.lastError.message}
+        />
+      )}
+
+      <div className="grid-2">
+        <BatchSummaryCard batch={workflow.batch} />
+
+        <Card title="Actividad reciente">
+          {!workflow.log.length && (
+            <EmptyState title="Sin acciones" message="El registro aparecera al ejecutar el flujo." />
+          )}
+          <ul className="log">
+            {workflow.log.slice(0, 8).map((entry) => (
+              <li key={entry.id} className={`log__entry log__entry--${entry.level}`}>
+                <span className="log__time">{entry.time}</span>
+                <span className="log__msg">{entry.message}</span>
+              </li>
+            ))}
+          </ul>
+        </Card>
+
+        <Card title="Flujo de proceso" className="col-span-2">
+          <div className="step-grid">
+            {IMPORT_STEPS.map((step, index) => {
+              const state = workflow.steps[step.key] || RUN.IDLE;
+              const content = STEP_CONTENT[step.key];
+              const response = workflow.responses[step.key];
+              return (
+                <StepCard
+                  key={step.key}
+                  number={index + 1}
+                  title={content.title}
+                  description={content.description}
+                  state={state}
+                  actionLabel={content.action}
+                  disabled={!workflow.canRunStep(step)}
+                  onRun={() => workflow.runStep(step.key)}
+                  result={responseLabel(step.key, response)}
+                  time={response?.completedAt}
+                  technicalData={response}
+                />
+              );
+            })}
+          </div>
+        </Card>
+
+        <Card title="Evidencia tecnica por respuesta" className="col-span-2">
+          {!responseEntries.length && (
+            <EmptyState title="Sin respuestas" message="Ejecuta un paso para habilitar el detalle tecnico." />
+          )}
+          <div className="technical-list">
+            {responseEntries.map(([key, response]) => (
+              <CollapsibleJson
+                key={key}
+                title={`Ver respuesta tecnica - ${STEP_CONTENT[key]?.title || key}`}
+                data={response}
+              />
+            ))}
+          </div>
+        </Card>
+      </div>
+>>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
     </>
   );
 }

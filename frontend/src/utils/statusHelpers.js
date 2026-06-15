@@ -16,12 +16,16 @@ export function statusVariant(status) {
     case 'TRACEABLE':
     case 'NORMALIZED':
     case 'ACTIVE':
+    case 'REVIEWED':
+    case 'RESOLVED':
       return 'success';
 
     // Estados en curso / informativos.
     case 'PENDING':
     case 'PROCESSING':
     case 'IN_PROGRESS':
+    case 'OPEN':
+    case 'INFO':
       return 'info';
 
     // Estados con observaciones (no son fallo duro).
@@ -34,7 +38,11 @@ export function statusVariant(status) {
     // Fallos.
     case 'ERROR':
     case 'FAILED':
+    case 'CRITICAL':
       return 'danger';
+
+    case 'DISMISSED':
+      return 'neutral';
 
     default:
       return 'neutral';

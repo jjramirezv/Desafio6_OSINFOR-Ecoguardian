@@ -7,7 +7,7 @@ export const API_BASE_URL =
 
 // Disclaimer institucional unico. Se reutiliza en toda la app.
 export const DISCLAIMER =
-  'El sistema no certifica legalidad ni declara ilegalidad; verifica trazabilidad técnica, consistencia documental y evidencia disponible.';
+  'El sistema no certifica legalidad; verifica trazabilidad tecnica, consistencia documental y evidencia disponible.';
 
 /**
  * Error de API con contexto util para mostrar en la UI.
@@ -87,4 +87,6 @@ export const httpClient = {
   get: (path, options) => request(path, { ...options, method: 'GET' }),
   post: (path, body, options) =>
     request(path, { ...options, method: 'POST', body }),
+  patch: (path, body, options) =>
+    request(path, { ...options, method: 'PATCH', body }),
 };

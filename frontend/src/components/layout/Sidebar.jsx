@@ -1,7 +1,15 @@
 const NAV_ITEMS = [
+<<<<<<< HEAD
   { key: 'dashboard', label: 'Panel General', icon: 'PG' },
   { key: 'import', label: 'Conector / Lotes', icon: 'CL' },
+=======
+  { key: 'dashboard', label: 'Panel general', icon: 'PG' },
+  { key: 'import', label: 'Conector interoperable', icon: 'CI' },
+>>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
   { key: 'traceability', label: 'Trazabilidad', icon: 'TR' },
+  { key: 'footprint', label: 'Huella legal', icon: 'HL' },
+  { key: 'consistency', label: 'Alertas', icon: 'AL' },
+  { key: 'verification', label: 'Verificacion', icon: 'VE' },
 ];
 
 const NAV_LABELS = {
@@ -21,6 +29,7 @@ export default function Sidebar({ current, onNavigate }) {
         </span>
       </div>
 
+<<<<<<< HEAD
       {(() => {
         let lastLabel = '';
         return (
@@ -52,6 +61,27 @@ export default function Sidebar({ current, onNavigate }) {
 
       <p className="app-sidebar__footer">
         Verificación técnica de trazabilidad y consistencia documental. No certifica legalidad.
+=======
+      <nav className="app-nav" aria-label="Navegacion principal">
+        {NAV_ITEMS.map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={`app-nav__item ${current === item.key ? 'is-active' : ''}`}
+            onClick={() => onNavigate(item.key)}
+          >
+            <span className="app-nav__icon" aria-hidden="true">
+              {item.icon}
+            </span>
+            {item.label}
+          </button>
+        ))}
+      </nav>
+
+      <p className="app-sidebar__footer">
+        Verificacion tecnica de trazabilidad, consistencia documental y alertas
+        registradas.
+>>>>>>> 8c6134fcb4938622eca65798a6025564a20a86e5
       </p>
     </aside>
   );

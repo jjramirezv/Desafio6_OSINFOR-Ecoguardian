@@ -7,12 +7,18 @@ export default function AppLayout({
   title,
   subtitle,
   backendStatus,
+  backendReady,
   children,
 }) {
   return (
     <div className="app">
       <Sidebar current={current} onNavigate={onNavigate} />
-      <Header title={title} subtitle={subtitle} backendStatus={backendStatus} />
+      <Header
+        title={title}
+        subtitle={subtitle}
+        backendStatus={backendStatus}
+        backendReady={backendReady}
+      />
       <main className="app-main">
         <div className="page">{children}</div>
       </main>

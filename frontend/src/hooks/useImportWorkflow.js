@@ -62,6 +62,7 @@ export function useImportWorkflow({ onBatchChange } = {}) {
         data: response?.data,
         message: response?.message,
         meta: response?.meta,
+        completedAt: formatTime(),
       },
     }));
   }, []);
