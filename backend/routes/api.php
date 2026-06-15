@@ -8,6 +8,7 @@ use App\Modules\Forest\Controllers\ForestTitleController;
 use App\Modules\Forest\Controllers\OperationalPlanController;
 use App\Modules\Interoperability\Controllers\ImportBatchController;
 use App\Modules\Interoperability\Controllers\SourceRecordController;
+use App\Modules\LegalFootprint\Controllers\LegalFootprintController;
 use App\Modules\TraceGraph\Controllers\GraphSeedController;
 use App\Modules\TraceGraph\Controllers\TraceEdgeController;
 use App\Modules\TraceGraph\Controllers\TraceGraphController;
@@ -56,3 +57,8 @@ Route::get('/import-batches/{id}/timeline', [ImportBatchController::class, 'time
 // Vecindario de un nodo y busqueda simple de grafo (S3-BE-03, S3-BE-04).
 Route::get('/trace/nodes/{id}/neighbors', [TraceGraphController::class, 'neighbors']);
 Route::get('/trace/search', [TraceGraphController::class, 'search']);
+
+// Huella Legal backend del Sprint 4. Solo lectura. No certifica legalidad.
+// Subgrafo verificable de un lote y resumen tecnico (S4-BE-02, S4-BE-03).
+Route::get('/import-batches/{id}/legal-footprint', [LegalFootprintController::class, 'show']);
+Route::get('/import-batches/{id}/legal-footprint/summary', [LegalFootprintController::class, 'summary']);
