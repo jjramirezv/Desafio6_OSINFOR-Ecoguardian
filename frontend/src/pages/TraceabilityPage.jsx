@@ -1,97 +1,81 @@
-import { useEffect, useState } from 'react';
-import { graphApi } from '../api/graphApi.js';
-import Button from '../components/common/Button.jsx';
+import { useEffect, useMemo } from 'react';
+import { useTraceability } from '../hooks/useTraceability.js';
 import Card from '../components/common/Card.jsx';
+import Button from '../components/common/Button.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
-import JsonViewer from '../components/common/JsonViewer.jsx';
 import SectionHeader from '../components/common/SectionHeader.jsx';
-import TraceGraphTable from '../components/domain/TraceGraphTable.jsx';
-import { formatDateTime } from '../utils/formatters.js';
-
-function Timeline({ events = [] }) {
-  if (!events.length) {
-    return <EmptyState title="Sin eventos" message="No hay timeline para este lote." />;
-  }
-
-  return (
-    <ul className="timeline">
-      {events.map((event) => (
-        <li className="timeline__item" key={event.id}>
-          <span className="timeline__dot" />
-          <div className="timeline__event">{event.event_type}</div>
-          <div className="timeline__time">{formatDateTime(event.created_at)}</div>
-          <JsonViewer value={event.payload} className="json-viewer--compact" />
-        </li>
-      ))}
-    </ul>
-  );
-}
+import GraphViewer from '../components/domain/GraphViewer.jsx';
+import TimelineView from '../components/domain/TimelineView.jsx';
+import NodeInspector from '../components/domain/NodeInspector.jsx';
+import SearchNodeBar from '../components/domain/SearchNodeBar.jsx';
+import { NodesTable, EdgesTable } from '../components/domain/TraceGraphTable.jsx';
 
 export default function TraceabilityPage({ initialBatchId = '' }) {
-  const [batchId, setBatchId] = useState(initialBatchId || '');
-  const [nodeId, setNodeId] = useState('');
-  const [query, setQuery] = useState('Tala');
-  const [graph, setGraph] = useState(null);
-  const [timeline, setTimeline] = useState([]);
-  const [searchResults, setSearchResults] = useState([]);
-  const [neighbors, setNeighbors] = useState(null);
-  const [loading, setLoading] = useState('');
-  const [error, setError] = useState(null);
+  const {
+    graph,
+    timeline,
+    searchResults,
+    neighbors,
+    selectedNode,
+    error,
+    loadGraph,
+    loadTimeline,
+    debouncedSearch,
+    loadNeighbors,
+    clearNeighbors,
+    clearSearch,
+    reset,
+    isLoading,
+  } = useTraceability();
 
   useEffect(() => {
-    if (initialBatchId) setBatchId(initialBatchId);
-  }, [initialBatchId]);
-
-  const run = async (label, action) => {
-    setLoading(label);
-    setError(null);
-    try {
-      return await action();
-    } catch (err) {
-      setError(err);
-      return null;
-    } finally {
-      setLoading('');
+    if (initialBatchId) {
+      loadGraph(initialBatchId);
+      loadTimeline(initialBatchId);
     }
-  };
+  }, [initialBatchId, loadGraph, loadTimeline]);
 
-  const loadGraph = () =>
-    run('graph', async () => {
-      const response = await graphApi.graphByBatch(batchId);
-      setGraph(response.data);
-      return response;
-    });
+  function handleBatchSelect(batchId) {
+    reset();
+    loadGraph(batchId);
+    loadTimeline(batchId);
+  }
 
-  const loadTimeline = () =>
-    run('timeline', async () => {
-      const response = await graphApi.timelineByBatch(batchId);
-      setTimeline(Array.isArray(response.data) ? response.data : []);
-      return response;
-    });
+  function handleNodeSelect(node) {
+    loadNeighbors(node);
+  }
 
-  const searchNodes = () =>
-    run('search', async () => {
-      const response = await graphApi.search(query);
-      setSearchResults(Array.isArray(response.data) ? response.data : []);
-      return response;
-    });
+  function handleTimelineNodeSelect(node) {
+    loadNeighbors(node);
+  }
 
-  const loadNeighbors = (id = nodeId) =>
-    run('neighbors', async () => {
-      const response = await graphApi.neighbors(id);
-      setNeighbors(response.data);
-      setNodeId(String(id));
-      return response;
-    });
+  const neighborNodeIds = useMemo(() => {
+    if (!neighbors) return null;
+    const ids = [];
+    if (neighbors.incoming) ids.push(...neighbors.incoming.map((n) => n.id || n.node_id));
+    if (neighbors.outgoing) ids.push(...neighbors.outgoing.map((n) => n.id || n.node_id));
+    if (neighbors.neighbors) ids.push(...neighbors.neighbors.map((n) => n.id || n.node_id));
+    if (selectedNode) ids.push(selectedNode.id);
+    return ids;
+  }, [neighbors, selectedNode]);
 
-  const selectedNodeId = neighbors?.node?.id ? Number(neighbors.node.id) : null;
+  const graphBusy = isLoading('graph');
+  const timelineBusy = isLoading('timeline');
 
   return (
     <>
       <SectionHeader
-        title="Grafo de trazabilidad"
-        subtitle="Consulta directa de endpoints Sprint 3 por lote, nodo y texto."
-      />
+        title="Trazabilidad y grafo de evidencia"
+        subtitle="Visualiza el grafo por lote, explora la cronología de eventos, busca nodos e inspecciona sus relaciones."
+      >
+        <Button
+          variant="ghost"
+          onClick={reset}
+          disabled={isLoading('graph') || isLoading('timeline')}
+        >
+          Limpiar
+        </Button>
+      </SectionHeader>
 
       {error && (
         <EmptyState
@@ -101,96 +85,122 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
         />
       )}
 
-      <Card title="Consultas">
-        <div className="query-bar">
-          <label className="field">
-            <span>ID de lote</span>
-            <input
-              value={batchId}
-              onChange={(event) => setBatchId(event.target.value)}
-              placeholder="Ej. 1"
-              inputMode="numeric"
+      <div className="traceability">
+        <div className="traceability__search">
+          <Card title="Cargar lote" compact>
+            <div className="traceability__batch-form">
+              <BatchSelector onSelect={handleBatchSelect} />
+            </div>
+          </Card>
+          <Card title="Buscar nodos" compact>
+            <SearchNodeBar
+              results={searchResults}
+              onSearch={debouncedSearch}
+              onSelect={handleNodeSelect}
+              loading={isLoading('search')}
             />
-          </label>
-          <Button onClick={loadGraph} disabled={!batchId || loading === 'graph'}>
-            {loading === 'graph' ? 'Consultando...' : 'Consultar grafo'}
-          </Button>
-          <Button
-            variant="secondary"
-            onClick={loadTimeline}
-            disabled={!batchId || loading === 'timeline'}
-          >
-            {loading === 'timeline' ? 'Consultando...' : 'Ver timeline'}
-          </Button>
+          </Card>
         </div>
 
-        <div className="query-bar">
-          <label className="field">
-            <span>Búsqueda</span>
-            <input value={query} onChange={(event) => setQuery(event.target.value)} />
-          </label>
-          <Button onClick={searchNodes} disabled={!query.trim() || loading === 'search'}>
-            Buscar nodos
-          </Button>
-          <label className="field">
-            <span>ID de nodo</span>
-            <input
-              value={nodeId}
-              onChange={(event) => setNodeId(event.target.value)}
-              placeholder="Ej. 12"
-              inputMode="numeric"
-            />
-          </label>
-          <Button
-            variant="secondary"
-            onClick={() => loadNeighbors()}
-            disabled={!nodeId || loading === 'neighbors'}
+        <div className="traceability__main">
+          <Card
+            title="Grafo por lote"
+            className="traceability__graph-card"
+            actions={
+              graph && (
+                <span className="text-sm muted">
+                  {graph.nodes?.length || 0} nodos · {graph.edges?.length || 0} relaciones
+                </span>
+              )
+            }
           >
-            Consultar vecinos
-          </Button>
+            {graphBusy ? (
+              <div className="state">
+                <div className="spinner" />
+                <span className="text-sm">Cargando grafo…</span>
+              </div>
+            ) : graph ? (
+              <GraphViewer
+                nodes={graph.nodes || []}
+                edges={graph.edges || []}
+                selectedNode={selectedNode}
+                neighborNodeIds={neighborNodeIds}
+                onSelect={handleNodeSelect}
+              />
+            ) : (
+              <EmptyState
+                title="Sin grafo cargado"
+                message="Ingresa un ID de lote proyectado para visualizar el subgrafo."
+              />
+            )}
+          </Card>
+
+          <div className="traceability__sidebar">
+            <Card title="Inspector de nodo">
+              <NodeInspector
+                node={selectedNode}
+                neighbors={neighbors}
+                onSelect={handleNodeSelect}
+                onClose={clearNeighbors}
+              />
+            </Card>
+
+            <Card title="Timeline">
+              {timelineBusy ? (
+                <div className="state">
+                  <div className="spinner" />
+                  <span className="text-sm">Cargando timeline…</span>
+                </div>
+              ) : (
+                <TimelineView
+                  events={timeline}
+                  onSelect={handleTimelineNodeSelect}
+                />
+              )}
+            </Card>
+          </div>
         </div>
-      </Card>
 
-      <div className="grid-2">
-        <Card title="Grafo por lote" className="col-span-2">
-          {graph ? (
-            <TraceGraphTable
-              nodes={graph.nodes || []}
-              edges={graph.edges || []}
-              selectedId={selectedNodeId}
-              onSelect={(node) => loadNeighbors(node.id)}
-            />
-          ) : (
-            <EmptyState title="Sin grafo cargado" message="Consulta un lote proyectado." />
-          )}
-        </Card>
-
-        <Card title="Timeline simple">
-          <Timeline events={timeline} />
-        </Card>
-
-        <Card title="Resultado de búsqueda">
-          <TraceGraphTable
-            nodes={searchResults}
-            edges={[]}
-            selectedId={selectedNodeId}
-            onSelect={(node) => loadNeighbors(node.id)}
-          />
-        </Card>
-
-        <Card title="Vecinos del nodo" className="col-span-2">
-          {neighbors ? (
-            <TraceGraphTable
+        {neighbors && (
+          <Card
+            title="Vecinos del nodo"
+            actions={
+              <Button variant="ghost" size="sm" onClick={clearNeighbors}>
+                Cerrar
+              </Button>
+            }
+          >
+            <NodesTable
               nodes={[neighbors.node, ...(neighbors.neighbors || [])].filter(Boolean)}
-              edges={neighbors.edges || []}
-              selectedId={selectedNodeId}
-              onSelect={(node) => loadNeighbors(node.id)}
+              selectedId={selectedNode?.id}
+              onSelect={handleNodeSelect}
             />
-          ) : (
-            <EmptyState title="Sin vecinos" message="Selecciona un nodo o consulta por ID." />
-          )}
-        </Card>
+          </Card>
+        )}
       </div>
     </>
+  );
+}
+
+function BatchSelector({ onSelect }) {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    const form = new FormData(e.target);
+    const id = form.get('batchId');
+    if (id) onSelect(id);
+  };
+
+  return (
+    <form className="row" onSubmit={handleSubmit}>
+      <label className="field" style={{ flex: 1 }}>
+        <input
+          name="batchId"
+          type="text"
+          placeholder="ID de lote (ej. 1)"
+          required
+        />
+      </label>
+      <Button type="submit">Cargar</Button>
+    </form>
   );
 }

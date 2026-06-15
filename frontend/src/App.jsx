@@ -7,16 +7,16 @@ import { useBackendStatus } from './hooks/useBackendStatus.js';
 
 const PAGE_META = {
   dashboard: {
-    title: 'Panel general',
-    subtitle: 'Estado del backend y alcance funcional Sprint 1-3.',
+    title: 'Panel General',
+    subtitle: 'Estado del backend, sistemas fuente y grafo de evidencia.',
   },
   import: {
     title: 'Conector interoperable',
-    subtitle: 'Creacion, normalizacion, persistencia y proyeccion de lote demo.',
+    subtitle: 'Creación, normalización, persistencia y proyección de lote demo.',
   },
   traceability: {
     title: 'Trazabilidad por lote',
-    subtitle: 'Grafo, timeline, busqueda de nodos y vecindarios.',
+    subtitle: 'Grafo, timeline, búsqueda de nodos y vecindarios.',
   },
 };
 

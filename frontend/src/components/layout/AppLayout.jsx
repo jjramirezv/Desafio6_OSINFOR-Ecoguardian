@@ -1,6 +1,3 @@
-// Shell de la aplicacion: compone Sidebar + Header + area principal.
-// No contiene logica de dominio; solo estructura y navegacion.
-
 import Sidebar from './Sidebar.jsx';
 import Header from './Header.jsx';
 

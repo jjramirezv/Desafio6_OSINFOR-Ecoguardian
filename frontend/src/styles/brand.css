@@ -1,46 +1,38 @@
-/*
- * brand.css — Identidad visual de Huella Legal Forestal.
- * Estilo institucional forestal: verde oscuro / verde medio / blanco / gris claro,
- * con acentos dorados suaves para advertencias. Sin colores de marca OSINFOR
- * disponibles en assets, se usa la paleta institucional descrita en el reto.
- * Todos los tokens viven aqui; el resto de CSS los consume via var().
- */
-
 :root {
-  /* --- Paleta forestal --- */
-  --c-forest-900: #0f2e1d; /* verde muy oscuro (fondos profundos) */
-  --c-forest-800: #14532d; /* verde oscuro principal */
-  --c-forest-700: #1b6b3a; /* verde oscuro / hover */
-  --c-forest-600: #228b4e; /* verde medio (acciones) */
-  --c-forest-500: #2fa364; /* verde medio claro */
-  --c-forest-100: #d9efe2; /* verde muy claro (fondos suaves) */
-  --c-forest-050: #eef7f1;
+  /* --- Paleta institucional OSINFOR --- */
+  --c-osinfor-verde: #007D48;
+  --c-osinfor-verde-claro: #4EB369;
+  --c-osinfor-verde-palido: #A3D0B3;
+  --c-osinfor-ambar: #FFC32A;
+  --c-osinfor-coral: #F97A53;
+  --c-osinfor-marron: #93604A;
+  --c-osinfor-teal: #00A1A1;
 
-  /* --- Neutros --- */
+  /* --- Neutros institucionales --- */
   --c-white: #ffffff;
-  --c-gray-050: #f6f8f7;
-  --c-gray-100: #eef1f0;
-  --c-gray-200: #dde3e1;
-  --c-gray-300: #c4ccc9;
-  --c-gray-400: #9aa5a1;
-  --c-gray-600: #5b6661;
-  --c-gray-800: #2c3531;
-  --c-ink: #1a211e;
+  --c-gray-050: #f7f8f9;
+  --c-gray-100: #edeeef;
+  --c-gray-200: #d9dbdd;
+  --c-gray-300: #b8bbbe;
+  --c-gray-400: #8e9296;
+  --c-gray-600: #5a5e62;
+  --c-gray-800: #2d3033;
+  --c-ink: #1c1e20;
 
-  /* --- Acentos / estados --- */
-  --c-gold-500: #c79a26; /* dorado suave (advertencias) */
-  --c-gold-100: #f7eed1;
-  --c-amber-bg: #fdf6e3;
-  --c-info-500: #2563a8;
-  --c-info-100: #dbeafe;
-  --c-danger-500: #b3261e;
-  --c-danger-100: #f9dedc;
-  --c-success-500: var(--c-forest-600);
-  --c-success-100: var(--c-forest-100);
+  /* --- Acentos semánticos --- */
+  --c-info-500: #0066b3;
+  --c-info-100: #d9eaf7;
+  --c-danger-500: #c0392b;
+  --c-danger-100: #f5d6d3;
+  --c-success-500: var(--c-osinfor-verde);
+  --c-success-100: var(--c-osinfor-verde-palido);
+  --c-warning-500: var(--c-osinfor-ambar);
+  --c-warning-100: #fff3d6;
 
-  /* --- Tipografia --- */
-  --font-sans: 'Segoe UI', system-ui, -apple-system, Roboto, Helvetica, Arial,
-    sans-serif;
+  /* --- Tipografía --- */
+  --font-heading: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
   --font-mono: 'Cascadia Code', 'Consolas', 'SF Mono', Menlo, monospace;
 
   --fs-xs: 0.75rem;
@@ -60,21 +52,21 @@
   --sp-7: 48px;
 
   /* --- Bordes / sombras --- */
-  --radius-sm: 6px;
-  --radius-md: 8px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
   --radius-lg: 8px;
-  --shadow-sm: 0 1px 2px rgba(15, 46, 29, 0.08);
-  --shadow-md: 0 4px 16px rgba(15, 46, 29, 0.1);
-  --shadow-lg: 0 12px 32px rgba(15, 46, 29, 0.14);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
 
-  /* --- Roles semanticos --- */
+  /* --- Roles semánticos --- */
   --bg-app: var(--c-gray-050);
   --bg-surface: var(--c-white);
-  --bg-sidebar: var(--c-forest-900);
+  --bg-sidebar: var(--c-osinfor-verde);
   --bg-header: var(--c-white);
   --text-primary: var(--c-ink);
   --text-muted: var(--c-gray-600);
   --border-subtle: var(--c-gray-200);
-  --brand-primary: var(--c-forest-800);
-  --brand-accent: var(--c-forest-600);
+  --brand-primary: var(--c-osinfor-verde);
+  --brand-accent: var(--c-osinfor-verde-claro);
 }

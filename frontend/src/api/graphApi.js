@@ -1,9 +1,9 @@
-// Endpoints del grafo de trazabilidad (Sprint 3).
-// Grafo y timeline por lote, busqueda de nodos y vecindario de un nodo.
-
 import { httpClient } from './httpClient.js';
 
 export const graphApi = {
+  /** Grafo semilla de evidencia (Sprint 1). */
+  seed: () => httpClient.get('/graph/seed'),
+
   /** Grafo (nodos + relaciones) proyectado de un lote. */
   graphByBatch: (batchId) => httpClient.get(`/import-batches/${batchId}/graph`),
 
