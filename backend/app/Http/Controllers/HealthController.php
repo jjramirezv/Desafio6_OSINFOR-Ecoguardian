@@ -12,10 +12,11 @@ class HealthController extends Controller
     public function __invoke(): JsonResponse
     {
         return response()->json([
-            'status' => 'ok',
-            'service' => 'Huella Legal Forestal API',
-            'version' => '0.1.0',
-            'environment' => app()->environment(),
+            'data' => [
+                'status' => 'ok',
+                'service' => 'Huella Legal Forestal API',
+                'backend_status' => 'READY_FOR_DEMO',
+            ],
         ]);
     }
 }

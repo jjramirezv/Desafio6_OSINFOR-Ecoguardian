@@ -11,27 +11,27 @@ import { useBackendStatus } from './hooks/useBackendStatus.js';
 const PAGE_META = {
   dashboard: {
     title: 'Panel general',
-    subtitle: 'Estado del backend y alcance funcional Sprint 1-3.',
+    subtitle: 'Estado operativo, alcance funcional y advertencias de uso.',
   },
   import: {
     title: 'Conector interoperable',
-    subtitle: 'Creacion, normalizacion, persistencia y proyeccion de lote demo.',
+    subtitle: 'Flujo controlado de lote, normalizacion, persistencia y proyeccion.',
   },
   traceability: {
-    title: 'Trazabilidad por lote',
-    subtitle: 'Grafo, timeline, busqueda de nodos y vecindarios.',
+    title: 'Trazabilidad',
+    subtitle: 'Grafo de evidencia, relaciones y eventos por lote.',
   },
   footprint: {
-    title: 'Huella tecnica',
-    subtitle: 'Resumen y huella completa por lote.',
+    title: 'Huella legal',
+    subtitle: 'Ficha tecnica de trazabilidad, score y observaciones.',
   },
   consistency: {
-    title: 'Consistencia y alertas',
+    title: 'Alertas',
     subtitle: 'Motor de consistencia, filtros y revision de alertas.',
   },
   verification: {
-    title: 'Verificacion publica',
-    subtitle: 'Snapshot, hash y consulta por codigo verificable.',
+    title: 'Verificacion',
+    subtitle: 'Snapshot, hash y consulta publica por codigo.',
   },
 };
 
@@ -83,6 +83,7 @@ export default function App() {
       title={pageMeta.title}
       subtitle={pageMeta.subtitle}
       backendStatus={backend.summary?.backend_status}
+      backendReady={backend.summary?.backend_status === 'READY_FOR_DEMO'}
     >
       {page}
     </AppLayout>

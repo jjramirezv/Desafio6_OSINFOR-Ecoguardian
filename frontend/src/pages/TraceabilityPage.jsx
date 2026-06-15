@@ -2,30 +2,12 @@ import { useEffect, useState } from 'react';
 import { graphApi } from '../api/graphApi.js';
 import Button from '../components/common/Button.jsx';
 import Card from '../components/common/Card.jsx';
+import CollapsibleJson from '../components/common/CollapsibleJson.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
-import JsonViewer from '../components/common/JsonViewer.jsx';
 import SectionHeader from '../components/common/SectionHeader.jsx';
+import Timeline from '../components/common/Timeline.jsx';
+import GraphSummaryCard from '../components/domain/GraphSummaryCard.jsx';
 import TraceGraphTable from '../components/domain/TraceGraphTable.jsx';
-import { formatDateTime } from '../utils/formatters.js';
-
-function Timeline({ events = [] }) {
-  if (!events.length) {
-    return <EmptyState title="Sin eventos" message="No hay timeline para este lote." />;
-  }
-
-  return (
-    <ul className="timeline">
-      {events.map((event) => (
-        <li className="timeline__item" key={event.id}>
-          <span className="timeline__dot" />
-          <div className="timeline__event">{event.event_type}</div>
-          <div className="timeline__time">{formatDateTime(event.created_at)}</div>
-          <JsonViewer value={event.payload} className="json-viewer--compact" />
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export default function TraceabilityPage({ initialBatchId = '' }) {
   const [batchId, setBatchId] = useState(initialBatchId || '');
@@ -35,6 +17,7 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
   const [timeline, setTimeline] = useState([]);
   const [searchResults, setSearchResults] = useState([]);
   const [neighbors, setNeighbors] = useState(null);
+  const [technicalResponses, setTechnicalResponses] = useState({});
   const [loading, setLoading] = useState('');
   const [error, setError] = useState(null);
 
@@ -42,11 +25,17 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
     if (initialBatchId) setBatchId(initialBatchId);
   }, [initialBatchId]);
 
+  const remember = (key, response) => {
+    setTechnicalResponses((current) => ({ ...current, [key]: response }));
+  };
+
   const run = async (label, action) => {
     setLoading(label);
     setError(null);
     try {
-      return await action();
+      const response = await action();
+      remember(label, response);
+      return response;
     } catch (err) {
       setError(err);
       return null;
@@ -89,8 +78,8 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
   return (
     <>
       <SectionHeader
-        title="Grafo de trazabilidad"
-        subtitle="Consulta directa de endpoints Sprint 3 por lote, nodo y texto."
+        title="Trazabilidad"
+        subtitle="Lectura del grafo de evidencia, relaciones y timeline por lote."
       />
 
       {error && (
@@ -126,7 +115,7 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
 
         <div className="query-bar">
           <label className="field">
-            <span>Búsqueda</span>
+            <span>Busqueda</span>
             <input value={query} onChange={(event) => setQuery(event.target.value)} />
           </label>
           <Button onClick={searchNodes} disabled={!query.trim() || loading === 'search'}>
@@ -152,7 +141,9 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
       </Card>
 
       <div className="grid-2">
-        <Card title="Grafo por lote" className="col-span-2">
+        <GraphSummaryCard graph={graph} timeline={timeline} />
+
+        <Card title="Nodos y relaciones" className="col-span-2">
           {graph ? (
             <TraceGraphTable
               nodes={graph.nodes || []}
@@ -165,11 +156,11 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
           )}
         </Card>
 
-        <Card title="Timeline simple">
+        <Card title="Timeline">
           <Timeline events={timeline} />
         </Card>
 
-        <Card title="Resultado de búsqueda">
+        <Card title="Resultado de busqueda">
           <TraceGraphTable
             nodes={searchResults}
             edges={[]}
@@ -188,6 +179,18 @@ export default function TraceabilityPage({ initialBatchId = '' }) {
             />
           ) : (
             <EmptyState title="Sin vecinos" message="Selecciona un nodo o consulta por ID." />
+          )}
+        </Card>
+
+        <Card title="Detalle tecnico de trazabilidad" className="col-span-2">
+          {Object.keys(technicalResponses).length ? (
+            <div className="technical-list">
+              {Object.entries(technicalResponses).map(([key, response]) => (
+                <CollapsibleJson key={key} title={`Ver respuesta tecnica - ${key}`} data={response} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState title="Sin respuestas tecnicas" message="Ejecuta una consulta para ver el detalle." />
           )}
         </Card>
       </div>

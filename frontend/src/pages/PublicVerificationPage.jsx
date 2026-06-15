@@ -1,7 +1,7 @@
 import Button from '../components/common/Button.jsx';
 import Card from '../components/common/Card.jsx';
+import CollapsibleJson from '../components/common/CollapsibleJson.jsx';
 import EmptyState from '../components/common/EmptyState.jsx';
-import JsonViewer from '../components/common/JsonViewer.jsx';
 import LoadingState from '../components/common/LoadingState.jsx';
 import SectionHeader from '../components/common/SectionHeader.jsx';
 import VerificationCard, {
@@ -33,15 +33,23 @@ export default function PublicVerificationPage({ initialBatchId = '' }) {
     <>
       <SectionHeader
         title="Verificacion publica"
-        subtitle="Snapshot, hash y verificacion por codigo Sprint 6."
+        subtitle="Ficha final para codigo, hash, estado, score y resumen verificable."
         actions={
           <Button onClick={loadBackendSummary} disabled={Boolean(loading)}>
             {loading === 'backend-summary'
               ? 'Consultando...'
-              : 'Ver backend-summary'}
+              : 'Consultar resumen backend'}
           </Button>
         }
       />
+
+      <div className="verification-banner">
+        <strong>Esta verificacion no certifica legalidad.</strong>
+        <span>
+          Resume trazabilidad tecnica, consistencia documental y alertas
+          registradas.
+        </span>
+      </div>
 
       <p className="disclaimer">{PUBLIC_VERIFICATION_DISCLAIMER}</p>
 
@@ -57,7 +65,7 @@ export default function PublicVerificationPage({ initialBatchId = '' }) {
         <Card title="Generar snapshot">
           <div className="query-bar">
             <label className="field">
-              <span>import_batch_id</span>
+              <span>ID de lote</span>
               <input
                 value={batchId}
                 onChange={(event) => setBatchId(event.target.value)}
@@ -77,7 +85,7 @@ export default function PublicVerificationPage({ initialBatchId = '' }) {
         <Card title="Verificar codigo">
           <div className="query-bar">
             <label className="field field--wide">
-              <span>verification_code</span>
+              <span>Codigo de verificacion</span>
               <input
                 value={verificationCode}
                 onChange={(event) => setVerificationCode(event.target.value)}
@@ -99,15 +107,15 @@ export default function PublicVerificationPage({ initialBatchId = '' }) {
 
       <div className="grid-2">
         <VerificationCard title="Snapshot generado" payload={snapshot} />
-        <VerificationCard title="Payload publico verificado" payload={verification} />
+        <VerificationCard title="Codigo verificado" payload={verification} />
 
-        <Card title="Respuesta backend-summary" className="col-span-2">
+        <Card title="Resumen backend" className="col-span-2">
           {backendSummary ? (
-            <JsonViewer value={backendSummary} />
+            <CollapsibleJson title="Ver respuesta tecnica" data={backendSummary} />
           ) : (
             <EmptyState
-              title="Sin backend-summary"
-              message="Consulta GET /demo/backend-summary para confirmar disponibilidad."
+              title="Sin resumen backend"
+              message="Consulta el resumen para confirmar disponibilidad de la API."
             />
           )}
         </Card>

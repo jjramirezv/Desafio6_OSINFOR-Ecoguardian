@@ -1,10 +1,10 @@
 const NAV_ITEMS = [
   { key: 'dashboard', label: 'Panel general', icon: 'PG' },
-  { key: 'import', label: 'Conector / Lotes', icon: 'CL' },
+  { key: 'import', label: 'Conector interoperable', icon: 'CI' },
   { key: 'traceability', label: 'Trazabilidad', icon: 'TR' },
-  { key: 'footprint', label: 'Huella tecnica', icon: 'HT' },
+  { key: 'footprint', label: 'Huella legal', icon: 'HL' },
   { key: 'consistency', label: 'Alertas', icon: 'AL' },
-  { key: 'verification', label: 'Verificacion', icon: 'VP' },
+  { key: 'verification', label: 'Verificacion', icon: 'VE' },
 ];
 
 export default function Sidebar({ current, onNavigate }) {
