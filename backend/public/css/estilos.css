@@ -1,0 +1,177 @@
+:root {
+    /* Paleta OSINFOR */
+    --primary: #007D48;        /* Verde principal */
+    --primary-hover: #006037;  /* Verde oscuro para hovers */
+    --secondary: #4EB369;      /* Verde claro (acentos) */
+    --accent: #00A1A1;         /* Turquesa */
+    
+    /* Escala de Grises (tipo Tailwind Slate) */
+    --slate-50: #f8fafc;       /* Fondo de la app */
+    --slate-200: #e2e8f0;      /* Bordes y separadores */
+    --slate-500: #64748b;      /* Textos secundarios / subtítulos */
+    --slate-700: #334155;      /* Texto normal */
+    --slate-900: #0f172a;      /* Títulos principales */
+
+    /* Utilidades */
+    --radius-md: 0.375rem;     /* rounded-md */
+    --radius-lg: 0.5rem;       /* rounded-lg */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);                           /* shadow-sm */
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); /* shadow-md */
+    --transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);                  /* transition-all */
+}
+
+
+*, ::before, ::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Barlow', system-ui, -apple-system, sans-serif;
+    background-color: var(--slate-50);
+    color: var(--slate-700);
+    display: flex;
+    min-height: 100vh;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+}
+
+
+
+
+
+
+h1 { font-size: 1.875rem; font-weight: 700; color: var(--slate-900); margin-bottom: 0.5rem; }
+h2 { font-size: 1.5rem; font-weight: 600; color: var(--slate-900); margin-bottom: 1.25rem; }
+
+hr {
+    margin: 2rem 0;
+    border: 0;
+    border-top: 1px solid var(--slate-200);
+}
+
+
+
+
+
+
+aside {
+    width: 16rem; /* Equivale a w-64 */
+    background-color: var(--primary);
+    color: white;
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    box-shadow: var(--shadow-md);
+}
+
+aside header {
+    padding: 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+aside header strong {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 0.025em;
+}
+
+aside nav {
+    padding: 1.5rem 1rem;
+    flex: 1;
+}
+
+aside nav ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem; /* space-y-1 */
+}
+
+aside nav ul li a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: rgba(255, 255, 255, 0.85);
+    text-decoration: none;
+    font-weight: 500;
+    border-radius: var(--radius-md);
+    transition: var(--transition);
+}
+
+aside nav ul li a:hover {
+    background-color: var(--primary-hover);
+    color: white;
+    transform: translateX(4px); /* Pequeño efecto dinámico al pasar el mouse */
+}
+
+/* =========================================
+   LAYOUT: CONTENIDO PRINCIPAL
+   ========================================= */
+main {
+    flex: 1;
+    padding: 2.5rem 3rem;
+    overflow-y: auto;
+}
+
+header p {
+    color: var(--slate-500);
+    font-size: 0.95rem;
+}
+
+header p strong {
+    color: var(--slate-700);
+    font-weight: 600;
+}
+
+
+
+
+
+
+
+
+
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem; /* gap-6 */
+}
+
+article.card {
+    background-color: white;
+    padding: 1.5rem; /* p-6 */
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--slate-200);
+    border-left: 4px solid var(--secondary); /* Acento de color institucional */
+    transition: var(--transition);
+}
+
+article.card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-2px); /* Efecto hover elegante */
+}
+
+article.card h3 {
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 600;
+    color: var(--slate-500);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+}
+
+article.card p {
+    font-size: 2.25rem; /* text-4xl */
+    font-weight: 700;
+    color: var(--slate-900);
+    line-height: 1;
+}
+
+article.card p strong {
+    color: var(--primary); /* Destaca el número en verde OSINFOR */
+}
