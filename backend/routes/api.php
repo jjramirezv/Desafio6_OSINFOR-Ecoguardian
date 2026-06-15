@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\DemoController;
 use App\Http\Controllers\HealthController;
 use App\Modules\Consistency\Controllers\ConsistencyController;
 use App\Modules\Evidence\Controllers\SourceSystemController;
@@ -10,6 +11,7 @@ use App\Modules\Forest\Controllers\OperationalPlanController;
 use App\Modules\Interoperability\Controllers\ImportBatchController;
 use App\Modules\Interoperability\Controllers\SourceRecordController;
 use App\Modules\LegalFootprint\Controllers\LegalFootprintController;
+use App\Modules\LegalFootprint\Controllers\LegalFootprintSnapshotController;
 use App\Modules\TraceGraph\Controllers\GraphSeedController;
 use App\Modules\TraceGraph\Controllers\TraceEdgeController;
 use App\Modules\TraceGraph\Controllers\TraceGraphController;
@@ -70,3 +72,12 @@ Route::post('/import-batches/{id}/run-consistency', [ConsistencyController::clas
 Route::get('/import-batches/{id}/alerts', [ConsistencyController::class, 'alerts']);
 Route::get('/consistency-alerts/{id}', [ConsistencyController::class, 'show']);
 Route::patch('/consistency-alerts/{id}/status', [ConsistencyController::class, 'updateStatus']);
+
+// Snapshot y verificacion publica del Sprint 6. El snapshot congela el estado
+// tecnico de la huella y le asigna un codigo verificable; verify es publico y
+// compacto (apto para QR/API). No certifica legalidad (S6-BE-03).
+Route::post('/import-batches/{id}/legal-footprint/snapshot', [LegalFootprintSnapshotController::class, 'store']);
+Route::get('/legal-footprints/verify/{verificationCode}', [LegalFootprintSnapshotController::class, 'verify']);
+
+// Resumen tecnico del backend para la demo (S6-BE-04).
+Route::get('/demo/backend-summary', [DemoController::class, 'backendSummary']);
